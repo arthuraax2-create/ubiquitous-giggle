@@ -72,6 +72,25 @@ function generateSessionToken() { return crypto.randomBytes(32).toString('hex');
 const PORT = parseInt(process.env.PORT) || 3000;
 const SECRET_KEY = process.env.SECRET_KEY;
 
+// ========== AUDIT LOG ==========
+const auditLog = [];
+function addAuditLog(action, user, data = {}) {
+    const entry = {
+        timestamp: Date.now(),
+        time: new Date().toLocaleString('pt-BR'),
+        action, user,
+        ip: data.ip || null,
+        detail: data,
+    };
+    auditLog.push(entry);
+    if (auditLog.length > 500) auditLog.shift();
+    // Also write to file
+    try {
+        const logLine = `[${entry.time}] ${user} | ${action} | ${JSON.stringify(data)}\n`;
+        fs.appendFileSync(path.join(__dirname, 'data', 'audit.log'), logLine);
+    } catch {}
+}
+
 if (!SECRET_KEY) {
     console.error('❌ FATAL: SECRET_KEY não definida no .env!');
     console.error('Crie um arquivo .env com: SECRET_KEY=sua_chave_secreta');
@@ -875,6 +894,7 @@ io.on('connection', (socket) => {
             syncServerStatus();
             socket.emit('init', getInitData());
             socket.emit('botStatus', !!botSocket);
+            addAuditLog('login', user.username, { ip: socket.handshake.address, role: user.role });
             console.log(`🔓 ${user.username} autenticou (${user.role})`);
             return;
         }
@@ -1089,10 +1109,33 @@ io.on('connection', (socket) => {
         socket.on(evt, (data) => { if (isAuthenticated(socket) && botSocket) botSocket.emit(evt, data); });
     });
 
+    // ══ botCommand: forward from dashboard Comandos tab ══
+    socket.on('botCommand', ({ target, command }) => {
+        if (!isAuthenticated(socket)) { socket.emit('toast', '⛔ Não autenticado!'); return; }
+        if (!isAdmin(socket)) { socket.emit('toast', '⛔ Sem permissão!'); return; }
+        if (!botSocket) { socket.emit('toast', '⚠️ Bot offline!'); return; }
+        const user = sessions.get(socket.data?.sessionToken || '')?.username || 'unknown';
+        addAuditLog('botCommand', user, { target, command });
+        botSocket.emit('botCommand', { target, command });
+    });
+
+    // ══ sendChat: forward direct message ══
+    socket.on('sendChat', ({ server, message }) => {
+        if (!isAuthenticated(socket)) return;
+        if (!isAdmin(socket)) { socket.emit('toast', '⛔ Sem permissão!'); return; }
+        if (!botSocket) { socket.emit('toast', '⚠️ Bot offline!'); return; }
+        botSocket.emit('chat', { serverKey: server || 'all', message });
+    });
+
     socket.on('restartBotProcess', () => {
         if (!isAdmin(socket)) { socket.emit('toast', '⛔ Sem permissão!'); return; }
         if (botSocket) { botSocket.emit('restartBotProcess'); socket.emit('toast', '🔄 Reinício enviado!'); }
         else socket.emit('toast', '⚠️ Bot offline!');
+    });
+
+    socket.on('getAuditLog', (callback) => {
+        if (!isAdmin(socket)) { if(typeof callback==='function') callback([]); return; }
+        if (typeof callback === 'function') callback(auditLog.slice(-200).reverse());
     });
 
     socket.on('getFullChat', () => { if (isAuthenticated(socket)) socket.emit('fullChat', botData.chatDatabase); });
