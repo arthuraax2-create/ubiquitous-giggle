@@ -1,320 +1,1197 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minecraft Bot V 1.3</title>
-    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root { --bg: #0d1117; --card: #161b22; --border: #30363d; --text: #c9d1d9; --muted: #8b949e; --accent: #58a6ff; --green: #3fb950; --red: #f85149; --yellow: #d29922; --purple: #a371f7; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-        .header { background: var(--card); border-bottom: 1px solid var(--border); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
-        .header-left { display: flex; align-items: center; gap: 15px; }
-        .logo { font-size: 1.3em; font-weight: bold; background: linear-gradient(90deg, var(--accent), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .version { background: var(--purple); color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75em; }
-        .status-badge { display: flex; align-items: center; gap: 8px; padding: 8px 15px; border-radius: 20px; font-size: 0.9em; }
-        .status-badge.online { background: rgba(63, 185, 80, 0.2); color: var(--green); }
-        .status-badge.offline { background: rgba(248, 81, 73, 0.2); color: var(--red); }
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9em; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; }
-        .btn-primary { background: var(--accent); color: white; }
-        .btn-primary:hover { background: #79c0ff; }
-        .btn-danger { background: var(--red); color: white; }
-        .nav { background: var(--card); border-bottom: 1px solid var(--border); padding: 0 20px; display: flex; gap: 5px; overflow-x: auto; }
-        .nav-item { padding: 15px 20px; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.2s; }
-        .nav-item:hover { color: var(--text); background: rgba(255,255,255,0.05); }
-        .nav-item.active { color: var(--accent); border-bottom-color: var(--accent); }
-        .content { padding: 20px; max-width: 1400px; margin: 0 auto; }
-        .tab { display: none; }
-        .tab.active { display: block; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; }
-        .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-        .card-header { padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .card-title { font-weight: 600; }
-        .card-body { padding: 20px; }
-        .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .stat { text-align: center; padding: 15px; background: var(--bg); border-radius: 8px; }
-        .stat-value { font-size: 1.5em; font-weight: bold; color: var(--accent); }
-        .stat-label { font-size: 0.8em; color: var(--muted); margin-top: 5px; }
-        .server-card { cursor: pointer; transition: all 0.2s; }
-        .server-card:hover { border-color: var(--accent); transform: translateY(-2px); }
-        .player-list { max-height: 400px; overflow-y: auto; }
-        .player-item { display: flex; align-items: center; gap: 10px; padding: 10px; background: var(--bg); border-radius: 8px; margin-bottom: 8px; cursor: pointer; }
-        .player-item:hover { background: rgba(255,255,255,0.05); }
-        .player-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--purple)); display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; }
-        .player-info { flex: 1; }
-        .player-name { font-weight: 500; }
-        .player-meta { font-size: 0.8em; color: var(--muted); }
-        .logs { background: var(--bg); border-radius: 8px; padding: 15px; max-height: 400px; overflow-y: auto; font-family: monospace; font-size: 0.85em; }
-        .log-entry { padding: 4px 0; border-bottom: 1px solid var(--border); }
-        .log-time { color: var(--muted); margin-right: 10px; }
-        .log-info { color: var(--text); }
-        .log-warn { color: var(--yellow); }
-        .log-error { color: var(--red); }
-        .form-group { margin-bottom: 15px; }
-        .form-label { display: block; margin-bottom: 5px; font-size: 0.9em; color: var(--muted); }
-        .form-input { width: 100%; padding: 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 1em; }
-        .form-input:focus { outline: none; border-color: var(--accent); }
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; }
-        .modal.active { display: flex; }
-        .modal-content { background: var(--card); border: 1px solid var(--border); border-radius: 12px; max-width: 500px; width: 90%; max-height: 80vh; overflow: auto; }
-        .modal-header { padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .modal-body { padding: 20px; }
-        .modal-close { background: none; border: none; color: var(--muted); font-size: 1.5em; cursor: pointer; }
-        .popup { position: fixed; bottom: 20px; right: 20px; width: 350px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; display: none; z-index: 1000; }
-        .popup.active { display: block; }
-        .popup-header { padding: 15px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .popup-body { padding: 15px; max-height: 300px; overflow-y: auto; }
-        .tag { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 0.75em; margin: 2px; }
-        .tag-green { background: rgba(63, 185, 80, 0.2); color: var(--green); }
-        .tag-red { background: rgba(248, 81, 73, 0.2); color: var(--red); }
-        .tag-blue { background: rgba(88, 166, 255, 0.2); color: var(--accent); }
-        .toast-container { position: fixed; bottom: 20px; left: 20px; z-index: 1000; }
-        .toast { background: var(--card); border: 1px solid var(--border); padding: 12px 20px; border-radius: 8px; margin-top: 10px; animation: slideIn 0.3s; }
-        @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: var(--bg); }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SØLV3R — Dashboard</title>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#05070f; --bg-card:#0b0f1e; --bg-card2:#0f1428; --bg-hover:rgba(0,220,255,0.05);
+  --border:rgba(0,220,255,0.10); --border-glow:rgba(0,220,255,0.30);
+  --cyan:#00dcff; --cyan-dim:rgba(0,220,255,0.12); --cyan-glow:0 0 20px rgba(0,220,255,0.4);
+  --purple:#a855f7; --purple-dim:rgba(168,85,247,0.15);
+  --green:#22d3a5; --green-dim:rgba(34,211,165,0.15);
+  --red:#f43f5e; --red-dim:rgba(244,63,94,0.15);
+  --yellow:#fbbf24;
+  --text:#e2e8f0; --text-muted:#4a5568; --text-dim:#94a3b8;
+  --sw:222px; --swc:58px;
+  /* compat with old JS references */
+  --success:var(--green); --danger:var(--red); --warning:var(--yellow);
+  --text-primary:var(--text); --text-secondary:var(--text-dim); --bg-border:var(--border);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.04) 2px,rgba(0,0,0,0.04) 4px);}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(0,220,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,220,255,0.025) 1px,transparent 1px);background-size:44px 44px;}
+
+/* ═══ LOGIN OVERLAY ═══ */
+.login-ov{position:fixed;inset:0;z-index:10000;background:var(--bg);display:flex;align-items:center;justify-content:center;transition:opacity 0.3s;}
+.login-ov.hidden{display:none;}
+.login-box{
+  background:var(--bg-card);border:1px solid var(--border-glow);border-radius:16px;
+  padding:40px 36px;width:360px;max-width:90vw;
+  box-shadow:0 0 60px rgba(0,220,255,0.08);
+  animation:fadeUp 0.4s ease;
+  position:relative; overflow:hidden;
+}
+.login-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--cyan),var(--purple));}
+.login-logo{display:flex;align-items:center;gap:12px;margin-bottom:32px;justify-content:center;}
+.login-logo-svg svg{width:44px;height:44px;}
+.login-brand{text-align:left;}
+.login-brand .b1{font-size:20px;font-weight:800;letter-spacing:0.12em;color:var(--cyan);}
+.login-brand .b2{font-size:10px;letter-spacing:0.2em;color:var(--text-muted);font-family:'JetBrains Mono',monospace;text-transform:uppercase;}
+.login-field{margin-bottom:14px;}
+.login-field label{display:block;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-muted);font-family:'JetBrains Mono',monospace;margin-bottom:6px;}
+.login-inp{
+  width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  padding:10px 14px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:13px;
+  outline:none;transition:border-color 0.2s;
+}
+.login-inp:focus{border-color:var(--cyan);}
+.login-inp::placeholder{color:var(--text-muted);}
+.login-err{color:var(--red);font-size:11px;margin-bottom:10px;font-family:'JetBrains Mono',monospace;display:none;}
+.login-btn{
+  width:100%;padding:11px;border-radius:8px;background:var(--cyan);color:var(--bg);
+  font-family:'Syne',sans-serif;font-size:13px;font-weight:700;letter-spacing:0.05em;
+  border:none;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.login-btn:hover:not(:disabled){box-shadow:var(--cyan-glow);}
+.login-btn:disabled{opacity:0.6;cursor:not-allowed;}
+.login-spin{width:14px;height:14px;border:2px solid rgba(5,7,15,0.3);border-top-color:var(--bg);border-radius:50%;animation:spin 0.7s linear infinite;display:none;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.login-relay{font-size:10px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;margin-top:16px;text-align:center;opacity:0.7;}
+
+/* ═══ APP LAYOUT ═══ */
+.app{display:flex;min-height:100vh;position:relative;z-index:1;}
+
+/* ═══ SIDEBAR ═══ */
+.sidebar{width:var(--sw);background:linear-gradient(180deg,#080c1a,#04060f);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;transition:width 0.28s cubic-bezier(0.4,0,0.2,1);overflow:hidden;}
+.sidebar.collapsed{width:var(--swc);}
+.sb-head{display:flex;align-items:center;gap:10px;padding:0 12px;height:64px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.logo-mark{width:36px;height:36px;flex-shrink:0;}
+.logo-mark svg{width:36px;height:36px;}
+.logo-txt{flex:1;overflow:hidden;white-space:nowrap;}
+.logo-txt .l1{font-size:13px;font-weight:800;letter-spacing:0.12em;color:var(--cyan);line-height:1;}
+.logo-txt .l2{font-size:9px;letter-spacing:0.18em;color:var(--text-muted);font-family:'JetBrains Mono',monospace;text-transform:uppercase;margin-top:2px;}
+.sbtgl{flex-shrink:0;background:none;border:none;cursor:pointer;color:var(--text-muted);padding:4px;border-radius:4px;transition:color 0.2s,transform 0.28s;display:flex;align-items:center;justify-content:center;}
+.sbtgl:hover{color:var(--cyan);}
+.sidebar.collapsed .sbtgl{transform:rotate(180deg);}
+.sb-status{margin:10px 10px 4px;padding:10px 12px;background:var(--cyan-dim);border:1px solid var(--border-glow);border-radius:8px;display:flex;align-items:center;gap:9px;flex-shrink:0;overflow:hidden;}
+.sidebar.collapsed .sb-status{padding:10px 0;justify-content:center;}
+.sidebar.collapsed .sb-stxt{display:none;}
+.pulse{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;box-shadow:0 0 8px var(--green);animation:pulseA 2s infinite;}
+@keyframes pulseA{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(0.7);}}
+.sb-stxt{font-size:11px;white-space:nowrap;overflow:hidden;}
+.sb-stxt b{display:block;color:var(--green);font-size:11px;}
+.sb-stxt s{display:block;color:var(--text-muted);font-size:9px;font-family:'JetBrains Mono',monospace;font-style:normal;}
+.sb-nav{flex:1;overflow-y:auto;overflow-x:hidden;padding:6px 0;}
+.sb-nav::-webkit-scrollbar{width:2px;}
+.sb-nav::-webkit-scrollbar-thumb{background:var(--border);}
+.nav-sec{padding:8px 14px 3px;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-muted);font-family:'JetBrains Mono',monospace;white-space:nowrap;overflow:hidden;transition:opacity 0.2s,height 0.28s,padding 0.28s;}
+.sidebar.collapsed .nav-sec{opacity:0;height:0;padding:0;}
+.nav-item{display:flex;align-items:center;padding:9px 18px 9px 16px;gap:11px;cursor:pointer;white-space:nowrap;transition:background 0.15s,color 0.15s,padding 0.28s;border-left:2px solid transparent;color:var(--text-dim);font-size:13px;font-weight:500;position:relative;}
+.nav-item:hover{color:var(--text);background:var(--bg-hover);}
+.nav-item.active{color:var(--cyan);border-left-color:var(--cyan);background:var(--cyan-dim);}
+.sidebar.collapsed .nav-item{padding:11px 0;justify-content:center;border-left-color:transparent;}
+.sidebar.collapsed .nav-item.active{background:var(--cyan-dim);}
+.sidebar.collapsed .nav-item .label,.sidebar.collapsed .nav-item .badge{display:none;}
+.nav-item i{width:18px;height:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.nav-item i svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+.nav-item .label{flex:1;}
+.nav-item .badge{font-size:9px;font-weight:700;padding:1px 6px;border-radius:10px;font-family:'JetBrains Mono',monospace;flex-shrink:0;background:var(--red);color:#fff;}
+.nav-item .badge.cyan{background:var(--cyan);color:var(--bg);}
+.nav-item .badge.green{background:var(--green);color:var(--bg);}
+.sidebar.collapsed .nav-item[data-tip]:hover::after{content:attr(data-tip);position:absolute;left:calc(var(--swc) + 8px);top:50%;transform:translateY(-50%);background:var(--bg-card2);border:1px solid var(--border-glow);color:var(--text);font-size:11px;padding:4px 10px;border-radius:6px;white-space:nowrap;z-index:200;pointer-events:none;font-family:'JetBrains Mono',monospace;}
+/* hide admin-only elements */
+.admin-only.no-perm{opacity:0.3;pointer-events:none;}
+.sb-foot{border-top:1px solid var(--border);padding:10px;flex-shrink:0;}
+.sb-user{display:flex;align-items:center;gap:9px;padding:7px;border-radius:8px;background:var(--bg-card2);white-space:nowrap;overflow:hidden;}
+.sidebar.collapsed .sb-user{justify-content:center;}
+.sidebar.collapsed .sb-user-info{display:none;}
+.sb-avatar{width:30px;height:30px;border-radius:8px;flex-shrink:0;background:linear-gradient(135deg,var(--purple),var(--cyan));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;}
+.sb-user-info strong{display:block;font-size:12px;}
+.sb-user-info span{font-size:10px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;}
+.sb-logout{margin-top:6px;width:100%;display:flex;align-items:center;justify-content:center;gap:6px;background:none;border:1px solid var(--border);color:var(--text-dim);font-family:'Syne',sans-serif;font-size:11px;border-radius:6px;padding:5px;cursor:pointer;transition:all 0.2s;}
+.sb-logout:hover{border-color:var(--red);color:var(--red);}
+.sidebar.collapsed .sb-logout .label{display:none;}
+#logoutText{display:inherit;}
+
+/* ═══ MAIN ═══ */
+.main{margin-left:var(--sw);flex:1;display:flex;flex-direction:column;min-height:100vh;transition:margin-left 0.28s cubic-bezier(0.4,0,0.2,1);}
+.main.exp{margin-left:var(--swc);}
+
+/* ═══ TOPBAR ═══ */
+.topbar{height:64px;background:rgba(5,7,15,0.85);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;padding:0 22px;position:sticky;top:0;z-index:50;}
+.topbar-title-wrap{flex:1;}
+#pageTitle{font-size:18px;font-weight:700;}
+.tb-sub{font-size:10px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;}
+.tb-sep{width:1px;align-self:stretch;background:var(--border);margin:14px 0;}
+.tb-live{display:flex;align-items:center;gap:5px;}
+.tb-ldot{width:7px;height:7px;border-radius:50%;animation:pulseA 2s infinite;}
+#botDot.online{background:var(--green);box-shadow:0 0 6px var(--green);}
+#botDot.offline{background:var(--text-muted);}
+#botText{font-size:10px;font-family:'JetBrains Mono',monospace;}
+.btn{padding:6px 14px;border-radius:6px;font-family:'Syne',sans-serif;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text-dim);transition:all 0.2s;}
+.btn:hover{border-color:var(--cyan);color:var(--cyan);}
+.btn.primary,.btn.p{background:var(--cyan);color:var(--bg);border-color:var(--cyan);}
+.btn.primary:hover,.btn.p:hover{box-shadow:0 0 14px rgba(0,220,255,0.4);}
+.btn.danger,.btn.r{background:transparent;border-color:var(--red);color:var(--red);}
+.btn.danger:hover,.btn.r:hover{background:var(--red-dim);}
+.btn.success{border-color:var(--green);color:var(--green);}
+.btn.success:hover{background:var(--green-dim);}
+.btn.sm{padding:4px 10px;font-size:11px;}
+
+/* ═══ CONTENT ═══ */
+.content{padding:20px;flex:1;}
+.page{display:none;animation:fadeUp 0.2s ease;}
+.page.active{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+/* ═══ PANELS (old design compat) ═══ */
+.panel{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;margin-bottom:14px;overflow:hidden;}
+.panel-h{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);font-size:13px;font-weight:600;}
+.panel-b{padding:14px;}
+.panel-b.np{padding:0;}
+.inp-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.inp{background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:7px 12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;transition:border-color 0.2s;}
+.inp:focus{border-color:var(--cyan);}
+.inp::placeholder{color:var(--text-muted);}
+select.inp{cursor:pointer;}
+
+/* ═══ STAT CARDS ═══ */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:18px;}
+.stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:16px;position:relative;overflow:hidden;cursor:default;transition:border-color 0.25s,transform 0.2s;}
+.stat-card:hover{transform:translateY(-2px);border-color:var(--border-glow);}
+.stat-card .si{margin-bottom:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;}
+.stat-card .si svg{width:18px;height:18px;fill:none;stroke:var(--cyan);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+.stat-card .sv{font-size:22px;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--cyan);line-height:1;margin-bottom:4px;}
+.stat-card .sl{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;}
+
+/* ═══ DASHBOARD GRID ═══ */
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.dash-left,.dash-right{display:flex;flex-direction:column;gap:14px;min-width:0;}
+@media(max-width:900px){.dash-grid{grid-template-columns:1fr;}}
+
+/* ═══ BOT CARDS ═══ */
+.bot-card{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:12px;}
+.bot-card:last-child{border-bottom:none;}
+.bot-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.bot-dot.on{background:var(--green);box-shadow:0 0 5px var(--green);}
+.bot-dot.off{background:var(--text-muted);}
+.bot-info{flex:1;overflow:hidden;}
+.bot-name{font-weight:700;font-family:'JetBrains Mono',monospace;font-size:12px;}
+.bot-srv{font-size:10px;color:var(--text-muted);}
+.bot-motd{font-size:10px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bot-mini{display:flex;gap:8px;font-size:10px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;}
+.bot-actions{display:flex;gap:4px;}
+
+/* ═══ CHAT ═══ */
+.chat-container{display:flex;flex-direction:column;height:calc(100vh - 130px);}
+.chat-toolbar{display:flex;gap:6px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--border);margin-bottom:10px;}
+.chat-msgs{flex:1;overflow-y:auto;font-size:12px;font-family:'JetBrains Mono',monospace;padding:4px;}
+.chat-msgs::-webkit-scrollbar{width:3px;}
+.chat-msgs::-webkit-scrollbar-thumb{background:var(--border);}
+.chat-msg{padding:3px 6px;border-radius:4px;line-height:1.5;border-left:2px solid transparent;}
+.chat-msg:hover{background:var(--bg-card);}
+.chat-msg.mentioned{border-left-color:var(--yellow);background:rgba(251,191,36,0.05);}
+.chat-input{display:flex;gap:6px;flex-wrap:wrap;padding-top:10px;border-top:1px solid var(--border);margin-top:8px;}
+.ct{color:var(--text-muted);}
+.cs{color:var(--cyan);cursor:pointer;}
+.cs:hover{text-decoration:underline;}
+.cu{color:var(--green);font-weight:700;}
+.cu.bot-user{color:var(--purple);}
+.cx{color:var(--text-dim);}
+.sentiment-dot{display:inline-block;width:5px;height:5px;border-radius:50%;margin-right:3px;vertical-align:middle;}
+.sentiment-dot.positive{background:var(--green);}
+.sentiment-dot.negative{background:var(--red);}
+
+/* ═══ SERVER CARDS ═══ */
+.srv-card{background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;}
+.srv-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.srv-name{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;}
+.srv-motd{font-size:11px;color:var(--text-dim);margin:4px 0;font-style:italic;}
+.srv-meta{display:flex;gap:10px;font-size:10px;color:var(--text-muted);flex-wrap:wrap;margin-top:4px;}
+.srv-plugins{font-size:10px;color:var(--text-dim);margin-top:4px;}
+.srv-tag{font-size:9px;padding:1px 6px;border-radius:3px;background:var(--cyan-dim);color:var(--cyan);font-weight:600;text-transform:uppercase;margin-left:4px;}
+.srv-tag.survival{background:var(--green-dim);color:var(--green);}
+.srv-tag.pvp{background:var(--red-dim);color:var(--red);}
+.rep-bar{height:3px;background:rgba(255,255,255,0.08);border-radius:2px;margin-top:8px;overflow:hidden;}
+.rep-bar .fill{height:100%;border-radius:2px;transition:width 0.3s;}
+
+/* ═══ PLAYER CARDS ═══ */
+.player-card{background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;}
+.player-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.player-avatar{width:32px;height:32px;border-radius:6px;image-rendering:pixelated;}
+.player-name{font-weight:700;font-size:12px;font-family:'JetBrains Mono',monospace;}
+.player-stats{display:flex;gap:10px;font-size:11px;color:var(--text-dim);}
+.player-role{font-size:9px;background:var(--purple-dim);color:var(--purple);padding:1px 5px;border-radius:3px;}
+.player-toxic{font-size:9px;background:var(--red-dim);color:var(--red);padding:1px 5px;border-radius:3px;}
+
+/* ═══ INVENTORY ═══ */
+.inv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:6px;}
+.inv-slot{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px;text-align:center;}
+.inv-slot.armor{border-color:var(--cyan);}
+.inv-name{font-size:10px;color:var(--text-dim);}
+.inv-count{font-size:11px;font-weight:700;color:var(--cyan);font-family:'JetBrains Mono',monospace;}
+
+/* ═══ LEARNING ═══ */
+.word-cloud{display:flex;flex-wrap:wrap;gap:6px;}
+.word-tag{background:var(--bg-card2);border:1px solid var(--border);border-radius:6px;padding:4px 9px;font-size:11px;font-family:'JetBrains Mono',monospace;display:inline-flex;align-items:center;gap:4px;}
+.word-tag .cnt{color:var(--text-muted);}
+.word-tag .word-del{cursor:pointer;color:var(--red);font-weight:700;margin-left:2px;}
+.word-tag .word-del:hover{opacity:0.7;}
+
+/* ═══ CHART BARS ═══ */
+.chart-bars{display:flex;align-items:flex-end;gap:3px;height:100px;border-bottom:1px solid var(--border);}
+.chart-bar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;cursor:default;min-width:4px;background:var(--cyan);border-radius:2px 2px 0 0;opacity:0.7;transition:opacity 0.2s;position:relative;}
+.chart-bar:hover{opacity:1;}
+.chart-bar .bv{font-size:8px;color:var(--text-muted);position:absolute;top:-14px;font-family:'JetBrains Mono',monospace;}
+.chart-bar .bl{font-size:8px;color:var(--text-muted);position:absolute;bottom:-14px;font-family:'JetBrains Mono',monospace;white-space:nowrap;}
+
+/* ═══ TERMINAL ═══ */
+.sys-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px;margin-bottom:14px;}
+.sys-card{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center;}
+.sys-card .sv{font-size:16px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--cyan);}
+.sys-card .sl{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;margin-top:3px;}
+.term-screen{background:rgba(0,0,0,0.4);border-radius:6px;padding:10px;max-height:400px;overflow-y:auto;font-family:'JetBrains Mono',monospace;font-size:11px;}
+.term-screen::-webkit-scrollbar{width:3px;}
+.term-screen::-webkit-scrollbar-thumb{background:var(--border);}
+.term-line{padding:1px 0;color:var(--text-dim);}
+.term-line.ok{color:var(--green);}
+.term-line.err{color:var(--red);}
+.term-line.warn{color:var(--yellow);}
+.term-line .tt{color:var(--text-muted);}
+
+/* ═══ LOGS ═══ */
+.log-e{display:flex;gap:6px;padding:4px 8px;font-size:11px;font-family:'JetBrains Mono',monospace;border-radius:4px;}
+.log-e:hover{background:var(--bg-card2);}
+.log-t{color:var(--text-muted);flex-shrink:0;}
+
+/* ═══ MSGS / BL ═══ */
+.msg-item{display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--border);font-size:12px;}
+.msg-item:last-child{border-bottom:none;}
+.msg-idx{color:var(--text-muted);font-family:'JetBrains Mono',monospace;font-size:10px;flex-shrink:0;}
+.msg-txt{flex:1;color:var(--text-dim);}
+.bl-item{display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--border);font-size:12px;}
+.bl-item:last-child{border-bottom:none;}
+.bl-type{font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;}
+.bl-type.perm{background:var(--red-dim);color:var(--red);}
+.bl-type.temp{background:rgba(251,191,36,0.1);color:var(--yellow);}
+
+/* ═══ KEYS ═══ */
+.key-card{background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;}
+.key-value{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);background:var(--bg);border-radius:5px;padding:5px 9px;margin:6px 0;word-break:break-all;}
+.key-meta{display:flex;gap:10px;font-size:10px;color:var(--text-muted);}
+.ad-card{background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;}
+.ad-progress{height:3px;background:rgba(255,255,255,0.08);border-radius:2px;margin-top:6px;overflow:hidden;}
+.ad-progress .fill{height:100%;background:var(--cyan);border-radius:2px;}
+
+/* ═══ TOP SERVER CHAT ═══ */
+.tsc{max-height:240px;overflow-y:auto;padding:6px;}
+.tsc::-webkit-scrollbar{width:2px;}
+.tsc::-webkit-scrollbar-thumb{background:var(--border);}
+.tsc-h{font-size:12px;font-weight:700;padding:6px 8px;border-bottom:1px solid var(--border);margin-bottom:6px;}
+.tsc-m{font-size:11px;font-family:'JetBrains Mono',monospace;padding:2px 4px;color:var(--text-dim);}
+
+/* ═══ ORBS ═══ */
+.orb{position:fixed;border-radius:50%;filter:blur(90px);pointer-events:none;z-index:0;}
+.o1{width:380px;height:380px;background:var(--cyan);top:-80px;left:240px;opacity:0.08;}
+.o2{width:280px;height:280px;background:var(--purple);bottom:80px;right:80px;opacity:0.09;}
+
+/* ═══ TOAST ═══ */
+.toast-c{position:fixed;bottom:20px;right:20px;z-index:99999;display:flex;flex-direction:column;gap:8px;}
+.toast{background:var(--bg-card2);border:1px solid var(--border-glow);border-radius:8px;padding:10px 16px;font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--text);animation:fadeUp 0.2s ease,fadeOut 0.3s ease 3.7s forwards;}
+@keyframes fadeOut{to{opacity:0;transform:translateY(8px);}}
+
+/* ═══ MISC ═══ */
+.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.status-dot.online{background:var(--green);box-shadow:0 0 6px var(--green);}
+.status-dot.offline{background:var(--text-muted);}
+.role-badge{font-size:10px;padding:2px 8px;border-radius:10px;font-family:'JetBrains Mono',monospace;}
+.role-badge.admin{background:var(--purple-dim);color:var(--purple);}
+.role-badge.viewer{background:var(--cyan-dim);color:var(--cyan);}
+.role-badge.client{background:rgba(251,191,36,0.1);color:var(--yellow);}
+.viewer-frame{width:100%;height:500px;border-radius:8px;border:1px solid var(--border);}
+@media(max-width:768px){.dash-grid{grid-template-columns:1fr;} .stats-grid{grid-template-columns:repeat(2,1fr);}}
+</style>
 </head>
 <body>
-    <div class="header">
-        <div class="header-left">
-            <span class="logo">🎮 Minecraft Bot</span>
-            <span class="version">V 1.3</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <div class="status-badge offline" id="connectionStatus">
-                <div class="status-dot"></div>
-                <span id="connectionText">Conectando...</span>
-            </div>
-            <button class="btn btn-primary" onclick="showModal('server')">+ Servidor</button>
-        </div>
+
+<div class="orb o1"></div><div class="orb o2"></div>
+
+<!-- ════ LOGIN ════ -->
+<div class="login-ov" id="loginOverlay">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-svg">
+        <svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="llg" x1="0" y1="0" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#00dcff"/>
+              <stop offset="100%" stop-color="#a855f7"/>
+            </linearGradient>
+            <filter id="lglow"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <path d="M22 2 L39 11 L39 33 L22 42 L5 33 L5 11 Z" fill="#0a0e1f" stroke="url(#llg)" stroke-width="1.6"/>
+          <line x1="22" y1="6" x2="22" y2="15" stroke="#00dcff" stroke-width="1.6" stroke-linecap="round" filter="url(#lglow)"/>
+          <circle cx="22" cy="5.5" r="2.2" fill="#00dcff" filter="url(#lglow)"/>
+          <path d="M15 12 Q18.5 9 22 10" stroke="#00dcff" stroke-width="1.1" stroke-linecap="round" fill="none" opacity="0.7"/>
+          <path d="M29 12 Q25.5 9 22 10" stroke="#00dcff" stroke-width="1.1" stroke-linecap="round" fill="none" opacity="0.7"/>
+          <rect x="13" y="15" width="18" height="13" rx="3" fill="#0f1428" stroke="url(#llg)" stroke-width="1.3"/>
+          <circle cx="18" cy="21.5" r="2.5" fill="url(#llg)" filter="url(#lglow)"/>
+          <circle cx="26" cy="21.5" r="2.5" fill="url(#llg)" filter="url(#lglow)"/>
+          <line x1="17" y1="33" x2="22" y2="28" stroke="#a855f7" stroke-width="1.3" stroke-linecap="round" opacity="0.8"/>
+          <line x1="27" y1="33" x2="22" y2="28" stroke="#a855f7" stroke-width="1.3" stroke-linecap="round" opacity="0.8"/>
+          <circle cx="17" cy="33" r="1.8" fill="#a855f7" opacity="0.9"/>
+          <circle cx="27" cy="33" r="1.8" fill="#a855f7" opacity="0.9"/>
+        </svg>
+      </div>
+      <div class="login-brand">
+        <div class="b1">SØLV3R</div>
+        <div class="b2">MC · MD</div>
+      </div>
     </div>
-    
-    <div class="nav">
-        <div class="nav-item active" data-tab="dashboard">📊 Dashboard</div>
-        <div class="nav-item" data-tab="servers">🖥️ Servidores</div>
-        <div class="nav-item" data-tab="players">👥 Players</div>
-        <div class="nav-item" data-tab="messages">📢 Mensagens</div>
-        <div class="nav-item" data-tab="logs">📜 Logs</div>
-        <div class="nav-item" data-tab="settings">⚙️ Config</div>
+    <div class="login-field">
+      <label>Usuário</label>
+      <input class="login-inp" type="text" id="loginUser" placeholder="••••••••" autocomplete="username">
     </div>
-    
+    <div class="login-field">
+      <label>Senha</label>
+      <input class="login-inp" type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <div class="login-err" id="loginError"></div>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">
+      <div class="login-spin" id="loginSpinner"></div>
+      <span id="loginBtnText">Entrar</span>
+    </button>
+    <div class="login-relay" id="loginRelayInfo"></div>
+  </div>
+</div>
+
+<!-- ════ APP ════ -->
+<div class="app" id="app" style="display:none">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-head">
+      <div class="logo-mark">
+        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="slg" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#00dcff"/>
+              <stop offset="100%" stop-color="#a855f7"/>
+            </linearGradient>
+            <filter id="sglow"><feGaussianBlur stdDeviation="1.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <path d="M18 2 L32 10 L32 26 L18 34 L4 26 L4 10 Z" fill="#0a0e1f" stroke="url(#slg)" stroke-width="1.5"/>
+          <line x1="18" y1="6" x2="18" y2="13" stroke="#00dcff" stroke-width="1.5" stroke-linecap="round" filter="url(#sglow)"/>
+          <circle cx="18" cy="5.5" r="1.8" fill="#00dcff" filter="url(#sglow)"/>
+          <path d="M13 10 Q15.5 7.5 18 8.5" stroke="#00dcff" stroke-width="1" stroke-linecap="round" fill="none" opacity="0.6"/>
+          <path d="M23 10 Q20.5 7.5 18 8.5" stroke="#00dcff" stroke-width="1" stroke-linecap="round" fill="none" opacity="0.6"/>
+          <rect x="11" y="13" width="14" height="10" rx="2.5" fill="#0f1428" stroke="url(#slg)" stroke-width="1.2"/>
+          <circle cx="15" cy="17.5" r="2" fill="url(#slg)" filter="url(#sglow)"/>
+          <circle cx="21" cy="17.5" r="2" fill="url(#slg)" filter="url(#sglow)"/>
+          <line x1="14" y1="27" x2="18" y2="23" stroke="#a855f7" stroke-width="1.2" stroke-linecap="round" opacity="0.7"/>
+          <line x1="22" y1="27" x2="18" y2="23" stroke="#a855f7" stroke-width="1.2" stroke-linecap="round" opacity="0.7"/>
+          <circle cx="14" cy="27" r="1.5" fill="#a855f7" opacity="0.8"/>
+          <circle cx="22" cy="27" r="1.5" fill="#a855f7" opacity="0.8"/>
+        </svg>
+      </div>
+      <div class="logo-txt">
+        <div class="l1">SØLV3R</div>
+        <div class="l2">v9.0 · relay</div>
+      </div>
+      <button class="sbtgl" onclick="toggleCollapse()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg>
+      </button>
+    </div>
+
+    <div class="sb-status">
+      <div class="pulse" id="sbBotDot" style="background:var(--text-muted);box-shadow:none;"></div>
+      <div class="sb-stxt">
+        <b id="sbBotText">Offline</b>
+        <s id="sbBotSub">Aguardando...</s>
+      </div>
+    </div>
+
+    <nav class="sb-nav">
+      <div class="nav-sec">Principal</div>
+      <div class="nav-item active" data-page="dashboard" data-tip="Dashboard" onclick="nav('dashboard')"><i><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></i><span class="label">Dashboard</span></div>
+      <div class="nav-item" data-page="bots" data-tip="Bots" onclick="nav('bots')"><i><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M12 2v5m0 0a2 2 0 0 0 0 4 2 2 0 0 0 0-4z"/><circle cx="9" cy="16" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="16" r="1" fill="currentColor" stroke="none"/></svg></i><span class="label">Bots</span><span class="badge cyan" id="botsCount">0</span></div>
+      <div class="nav-sec">Dados</div>
+      <div class="nav-item" data-page="chat" data-tip="Chat" onclick="nav('chat')"><i><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></i><span class="label">Chat</span></div>
+      <div class="nav-item" data-page="learning" data-tip="Aprendizado" onclick="nav('learning')"><i><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></i><span class="label">Aprendizado</span></div>
+      <div class="nav-sec">Gerenciar</div>
+      <div class="nav-item" data-page="servers" data-tip="Servidores" onclick="nav('servers')"><i><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="5" rx="1"/><rect x="2" y="10" width="20" height="5" rx="1"/><rect x="2" y="17" width="20" height="4" rx="1"/><circle cx="6" cy="5.5" r="1" fill="currentColor" stroke="none"/><circle cx="6" cy="12.5" r="1" fill="currentColor" stroke="none"/></svg></i><span class="label">Servidores</span></div>
+      <div class="nav-item" data-page="players" data-tip="Players" onclick="nav('players')"><i><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></i><span class="label">Players</span></div>
+      <div class="nav-item" data-page="inventory" data-tip="Inventário" onclick="nav('inventory')"><i><svg viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></i><span class="label">Inventário</span></div>
+      <div class="nav-item" data-page="messages" data-tip="Mensagens" onclick="nav('messages')"><i><svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z"/></svg></i><span class="label">Mensagens</span></div>
+      <div class="nav-item" data-page="blacklist" data-tip="Blacklist" onclick="nav('blacklist')"><i><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></i><span class="label">Blacklist</span><span class="badge" id="blCount">0</span></div>
+      <div class="nav-sec">Análise</div>
+      <div class="nav-item" data-page="analytics" data-tip="Analytics" onclick="nav('analytics')"><i><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></i><span class="label">Analytics</span></div>
+      <div class="nav-item" data-page="viewer" data-tip="Viewer 3D" onclick="nav('viewer')"><i><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></i><span class="label">Viewer 3D</span></div>
+      <div class="nav-item" data-page="terminal" data-tip="Terminal" onclick="nav('terminal')"><i><svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></i><span class="label">Terminal</span></div>
+      <div class="nav-item" data-page="logs" data-tip="Logs" onclick="nav('logs')"><i><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></i><span class="label">Logs</span></div>
+      <div class="nav-sec admin-only">Admin</div>
+      <div class="nav-item admin-only" data-page="keys" data-tip="Keys/Ads" onclick="nav('keys')"><i><svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg></i><span class="label">Keys/Ads</span></div>
+      <div class="nav-item" data-page="settings" data-tip="Config" onclick="nav('settings')"><i><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></i><span class="label">Config</span></div>
+    </nav>
+
+    <div class="sb-foot">
+      <div class="sb-user">
+        <div class="sb-avatar" id="sbAvatar">C</div>
+        <div class="sb-user-info">
+          <strong id="sbUser">—</strong>
+          <span id="sbRole" class="role-badge">—</span>
+        </div>
+      </div>
+      <button class="sb-logout" onclick="doLogout()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span class="label" id="logoutText">Sair</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main" id="main">
+    <header class="topbar">
+      <div class="topbar-title-wrap">
+        <div id="pageTitle">Dashboard</div>
+        <div class="tb-sub" id="tbSub">—</div>
+      </div>
+      <div class="tb-live">
+        <div class="tb-ldot status-dot offline" id="botDot" style="width:8px;height:8px;"></div>
+        <span id="botText" style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--text-muted)">Offline</span>
+      </div>
+      <div class="tb-sep"></div>
+      <button class="btn sm admin-only" onclick="cmd('announce')">Anunciar</button>
+      <button class="btn sm primary admin-only" onclick="connectSrv()">+ Conectar</button>
+    </header>
+
     <div class="content">
-        <div class="tab active" id="tab-dashboard">
-            <div class="grid">
-                <div class="card">
-                    <div class="card-header"><span class="card-title">📊 Status</span></div>
-                    <div class="card-body">
-                        <div class="stats">
-                            <div class="stat"><div class="stat-value" id="totalServers">0</div><div class="stat-label">Servidores</div></div>
-                            <div class="stat"><div class="stat-value" id="totalBots">0</div><div class="stat-label">Bots</div></div>
-                            <div class="stat"><div class="stat-value" id="totalPlayers">0</div><div class="stat-label">Players</div></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-header"><span class="card-title">🔗 Conexão</span></div>
-                    <div class="card-body">
-                        <p>Local: <code>http://localhost:15294</code></p>
-                        <p>Externo: <code id="externalUrl">--</code></p>
-                    </div>
-                </div>
-            </div>
-            <h3 style="margin: 20px 0 15px;">Servidores</h3>
-            <div class="grid" id="serversGrid"></div>
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="p-dashboard">
+        <div class="stats-grid">
+          <div class="stat-card"><div class="si"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M12 2v5m0 0a2 2 0 0 0 0 4 2 2 0 0 0 0-4z"/></svg></div><div class="sv" id="sBots">0</div><div class="sl">Bots Ativos</div></div>
+          <div class="stat-card"><div class="si"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="5" rx="1"/><rect x="2" y="10" width="20" height="5" rx="1"/><rect x="2" y="17" width="20" height="4" rx="1"/></svg></div><div class="sv" id="sServers">0</div><div class="sl">Servidores</div></div>
+          <div class="stat-card"><div class="si"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div class="sv" id="sMsgs">0</div><div class="sl">Mensagens</div></div>
+          <div class="stat-card"><div class="si"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div><div class="sv" id="sBl">0</div><div class="sl">Blacklist</div></div>
+          <div class="stat-card"><div class="si"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="sv" id="sPlayers">0</div><div class="sl">Players</div></div>
+          <div class="stat-card"><div class="si"><svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z"/></svg></div><div class="sv" id="sAds">0</div><div class="sl">Anúncios</div></div>
+          <div class="stat-card"><div class="si"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div class="sv" id="sImpressions">0</div><div class="sl">Impressões</div></div>
         </div>
-        
-        <div class="tab" id="tab-servers">
-            <div class="card">
-                <div class="card-header"><span class="card-title">🖥️ Servidores</span><button class="btn btn-primary" onclick="showModal('server')">+ Adicionar</button></div>
-                <div class="card-body" id="serversList"></div>
-            </div>
+        <div class="dash-grid">
+          <div class="dash-left">
+            <div class="panel"><div class="panel-h">Top 3</div><div class="panel-b np" id="topSrvPanel"><div style="padding:16px;color:var(--text-muted);text-align:center;font-size:12px;">Aguardando...</div></div></div>
+            <div class="panel"><div class="panel-h"><span>Bots</span><div style="display:flex;gap:6px;"><button class="btn sm primary admin-only" onclick="cmd('announce')">Anunciar</button><button class="btn sm danger admin-only" onclick="cmd('restartBots')">Reiniciar</button></div></div><div class="panel-b np" id="botsPanel"><div style="padding:16px;color:var(--text-muted);text-align:center;font-size:12px;">Nenhum bot</div></div></div>
+            <div class="panel"><div class="panel-h">Logs Recentes</div><div class="panel-b np" id="dashLogs" style="max-height:180px;overflow-y:auto;"></div></div>
+          </div>
+          <div class="dash-right">
+            <div class="panel"><div class="panel-h">Chat Popular</div><div class="panel-b np"><div class="tsc" id="tscPanel"><div style="padding:16px;color:var(--text-muted);text-align:center;font-size:12px;">Aguardando...</div></div></div></div>
+            <div class="panel"><div class="panel-h">Conectar Servidor</div><div class="panel-b"><div class="inp-row"><input class="inp admin-only" id="cIp" placeholder="ip:porta" style="flex:1;"><button class="btn primary admin-only" onclick="connectSrv()">Conectar</button></div></div></div>
+            <div class="panel"><div class="panel-h">Msgs / Hora</div><div class="panel-b"><div class="chart-bars" id="peakChart" style="height:70px;"></div><div style="height:20px;"></div></div></div>
+          </div>
         </div>
-        
-        <div class="tab" id="tab-players">
-            <div class="card">
-                <div class="card-header"><span class="card-title">👥 Players</span></div>
-                <div class="card-body"><div class="player-list" id="playersList"></div></div>
-            </div>
+      </div>
+
+      <!-- BOTS -->
+      <div class="page" id="p-bots">
+        <div class="inp-row"><input class="inp admin-only" id="cIp2" placeholder="ip:porta" style="max-width:260px;"><button class="btn primary admin-only" onclick="connectSrv2()">Conectar</button><button class="btn danger admin-only" onclick="cmd('disconnect_server','all')">Desconectar Todos</button></div>
+        <div class="panel"><div class="panel-h">Todos os Bots</div><div class="panel-b np" id="botsFull"></div></div>
+      </div>
+
+      <!-- CHAT -->
+      <div class="page" id="p-chat">
+        <div class="chat-container">
+          <div class="chat-toolbar">
+            <select class="inp" id="chatFilter" style="max-width:220px;" onchange="filterChat()"><option value="all">Todos servidores</option></select>
+            <select class="inp" id="chatSType" style="max-width:110px;"><option value="all">Tudo</option><option value="player">Jogador</option><option value="message">Mensagem</option><option value="positive">Positivo</option><option value="negative">Negativo</option></select>
+            <input class="inp" id="chatSearch" placeholder="Pesquisar..." style="max-width:200px;" oninput="filterChat()">
+            <button class="btn sm" onclick="filterChat()">Buscar</button>
+            <button class="btn sm" onclick="dlChat()">Exportar</button>
+            <button class="btn sm danger admin-only" onclick="cmd('clearChatDatabase')">Limpar</button>
+          </div>
+          <div class="chat-msgs" id="chatMsgs"></div>
+          <div class="chat-input">
+            <select class="inp admin-only" id="chatSendSrv" style="max-width:180px;"><option value="all">Todos</option></select>
+            <input class="inp admin-only" id="chatSendMsg" placeholder="Mensagem..." style="flex:1;" onkeydown="if(event.key==='Enter')sendChat()">
+            <button class="btn primary admin-only" onclick="sendChat()">Enviar</button>
+            <input class="inp admin-only" id="chatSendCmd" placeholder="/cmd" style="max-width:150px;" onkeydown="if(event.key==='Enter')sendCmd()">
+            <button class="btn admin-only" onclick="sendCmd()">Cmd</button>
+          </div>
         </div>
-        
-        <div class="tab" id="tab-messages">
-            <div class="grid">
-                <div class="card">
-                    <div class="card-header"><span class="card-title">📢 Anúncios</span></div>
-                    <div class="card-body">
-                        <div id="messagesList"></div>
-                        <div style="margin-top: 15px;">
-                            <input type="text" class="form-input" id="newMessage" placeholder="Nova mensagem...">
-                            <button class="btn btn-primary" style="margin-top: 10px;" onclick="addMessage()">Adicionar</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+      </div>
+
+      <!-- LEARNING -->
+      <div class="page" id="p-learning">
+        <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(120px,1fr));">
+          <div class="stat-card"><div class="sv" id="lTotal">0</div><div class="sl">Analisadas</div></div>
+          <div class="stat-card"><div class="sv" id="lMin">0%</div><div class="sl">Minúscula</div></div>
+          <div class="stat-card"><div class="sv" id="lAcento">0%</div><div class="sl">Acento</div></div>
+          <div class="stat-card"><div class="sv" id="lAbrev">0%</div><div class="sl">Abreviações</div></div>
         </div>
-        
-        <div class="tab" id="tab-logs">
-            <div class="card">
-                <div class="card-header"><span class="card-title">📜 Logs</span><button class="btn btn-primary" onclick="clearLogs()">Limpar</button></div>
-                <div class="card-body"><div class="logs" id="logsContainer"></div></div>
-            </div>
+        <div class="inp-row"><button class="btn primary" onclick="reqLearn()">Atualizar</button><button class="btn success" onclick="exportLearn()">Exportar</button></div>
+        <div class="panel"><div class="panel-h">Gírias</div><div class="panel-b"><div class="word-cloud" id="giriasC"></div></div></div>
+        <div class="panel"><div class="panel-h">Expressões</div><div class="panel-b"><div class="word-cloud" id="exprC"></div></div></div>
+        <div class="panel"><div class="panel-h">Frases</div><div class="panel-b np" id="frasesP"></div></div>
+      </div>
+
+      <!-- SERVERS -->
+      <div class="page" id="p-servers">
+        <div class="inp-row">
+          <select class="inp" id="srvCatF" style="max-width:140px;" onchange="renderSrvs()"><option value="all">Todas</option><option value="survival">Survival</option><option value="pvp">PvP</option><option value="criativo">Criativo</option><option value="minigame">Minigame</option><option value="smp">SMP</option><option value="lojinha">Lojinha</option><option value="outro">Outro</option></select>
+          <select class="inp" id="srvStatF" style="max-width:110px;" onchange="renderSrvs()"><option value="all">Todos</option><option value="online">Online</option><option value="offline">Offline</option></select>
+          <input class="inp" id="srvSearch" placeholder="Pesquisar..." style="max-width:200px;" oninput="renderSrvs()">
         </div>
-        
-        <div class="tab" id="tab-settings">
-            <div class="card">
-                <div class="card-header"><span class="card-title">⚙️ Configurações</span></div>
-                <div class="card-body">
-                    <div class="form-group">
-                        <label class="form-label">Intervalo Anúncios (seg)</label>
-                        <input type="number" class="form-input" id="settingInterval" value="120">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Senha</label>
-                        <input type="text" class="form-input" id="settingPassword" value="senha123456">
-                    </div>
-                    <button class="btn btn-primary" onclick="saveSettings()">Salvar</button>
-                </div>
-            </div>
+        <div id="srvsPanel"></div>
+      </div>
+
+      <!-- PLAYERS -->
+      <div class="page" id="p-players">
+        <div class="inp-row">
+          <input class="inp" id="playerSearch" placeholder="Pesquisar jogador..." style="max-width:260px;" oninput="searchPlayers()">
+          <button class="btn" onclick="searchPlayers()">Buscar</button>
+          <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-dim);cursor:pointer;"><input type="checkbox" id="playerToxicOnly" onchange="searchPlayers()"> Tóxicos</label>
         </div>
-    </div>
-    
-    <div class="modal" id="modal-server">
-        <div class="modal-content">
-            <div class="modal-header"><h3>+ Adicionar Servidor</h3><button class="modal-close" onclick="hideModal('server')">&times;</button></div>
-            <div class="modal-body">
-                <div class="form-group"><label class="form-label">Nome</label><input type="text" class="form-input" id="serverName"></div>
-                <div class="form-group"><label class="form-label">Host</label><input type="text" class="form-input" id="serverHost"></div>
-                <div class="form-group"><label class="form-label">Porta</label><input type="number" class="form-input" id="serverPort" value="25565"></div>
-                <button class="btn btn-primary" style="width: 100%;" onclick="addServer()">Adicionar</button>
-            </div>
+        <div id="playersPanel"></div>
+      </div>
+
+      <!-- INVENTORY -->
+      <div class="page" id="p-inventory">
+        <div class="inp-row"><select class="inp" id="invBotSelect" style="max-width:260px;" onchange="renderInventory()"><option value="">Selecione um bot</option></select></div>
+        <div class="panel"><div class="panel-h">Armadura</div><div class="panel-b" id="invArmor"><div style="color:var(--text-muted);font-size:12px;">Selecione um bot</div></div></div>
+        <div class="panel"><div class="panel-h">Inventário</div><div class="panel-b" id="invItems"><div style="color:var(--text-muted);font-size:12px;">Selecione um bot</div></div></div>
+      </div>
+
+      <!-- MESSAGES -->
+      <div class="page" id="p-messages">
+        <div class="panel">
+          <div class="panel-h">Anúncios</div>
+          <div class="panel-b"><div class="inp-row"><input class="inp admin-only" id="newMsg" placeholder="Nova mensagem..." style="flex:1;"><button class="btn primary admin-only" onclick="addMsg()">Adicionar</button></div></div>
+          <div class="panel-b np" id="msgsPanel"></div>
         </div>
-    </div>
-    
-    <div class="popup" id="playerPopup">
-        <div class="popup-header"><h4 id="playerPopupName">Player</h4><button class="modal-close" onclick="hidePopup()">&times;</button></div>
-        <div class="popup-body"><div id="playerPopupContent"></div></div>
-    </div>
-    
-    <div class="toast-container" id="toasts"></div>
-    
-    <script>
-        let socket = null;
-        let config = {};
-        let botStatus = { servers: [] };
-        let playersData = { players: {}, toxic: [] };
-        
-        function connect() {
-            socket = io(window.location.origin, { transports: ['websocket', 'polling'] });
-            socket.on('connect', () => { setStatus(true); toast('Conectado!', 'success'); });
-            socket.on('disconnect', () => setStatus(false));
-            socket.on('config', (c) => { config = c; updateUI(); });
-            socket.on('bot:status', (s) => { botStatus = s; updateDashboard(); });
-            socket.on('bot:log', (d) => addLog(d.message, d.level, d.serverId, d.timestamp));
-            socket.on('bot:logs', (l) => { document.getElementById('logsContainer').innerHTML = ''; l.forEach(x => addLog(x.message, x.level, x.serverId, x.timestamp)); });
-            socket.on('players:data', (d) => { playersData = d; updatePlayers(); });
-            socket.on('bot:player_event', (d) => toast(`${d.player} ${d.type === 'join' ? 'entrou' : 'saiu'}`, 'info'));
-            socket.on('server:added', (s) => toast(`Servidor ${s.name} adicionado!`, 'success'));
-        }
-        
-        function setStatus(online) {
-            const b = document.getElementById('connectionStatus');
-            const t = document.getElementById('connectionText');
-            b.className = 'status-badge ' + (online ? 'online' : 'offline');
-            t.textContent = online ? 'Online' : 'Offline';
-        }
-        
-        function updateUI() {
-            document.getElementById('messagesList').innerHTML = (config.messages || []).map((m, i) => `<div class="player-item"><span>${m}</span><button class="btn btn-danger" style="padding: 5px 10px; margin-left: auto;" onclick="removeMessage(${i})">✕</button></div>`).join('');
-            document.getElementById('settingInterval').value = config.botSettings?.announcementInterval || 120;
-            document.getElementById('settingPassword').value = config.auth?.password || 'senha123456';
-            if (config.relay?.externalUrl) document.getElementById('externalUrl').textContent = config.relay.externalUrl;
-        }
-        
-        function updateDashboard() {
-            document.getElementById('totalServers').textContent = botStatus.servers.length;
-            document.getElementById('totalBots').textContent = botStatus.servers.reduce((s, x) => s + (x.bots?.filter(b => b.connected).length || 0), 0);
-            document.getElementById('totalPlayers').textContent = botStatus.servers.reduce((s, x) => s + (x.playersCount || 0), 0);
-            
-            document.getElementById('serversGrid').innerHTML = botStatus.servers.map(s => `
-                <div class="card server-card">
-                    <div class="card-body">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                            <div><strong>${s.name || s.host}</strong><br><small style="color: var(--muted)">${s.host}:${s.port}</small></div>
-                            <span style="color: ${s.online ? 'var(--green)' : 'var(--red)'}">${s.online ? '✅' : '❌'}</span>
-                        </div>
-                        <div class="stats">
-                            <div class="stat"><div class="stat-value">${s.playersCount || 0}</div><div class="stat-label">Players</div></div>
-                            <div class="stat"><div class="stat-value">${s.bots?.filter(b => b.connected).length || 0}</div><div class="stat-label">Bots</div></div>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-        
-        function updatePlayers() {
-            document.getElementById('playersList').innerHTML = Object.entries(playersData.players || {}).map(([name, data]) => `
-                <div class="player-item" onclick="showPlayer('${name}')">
-                    <div class="player-avatar">${name[0].toUpperCase()}</div>
-                    <div class="player-info">
-                        <div class="player-name">${name}</div>
-                        <div class="player-meta">${data.messageCount || 0} msgs · ${data.servers?.length || 0} servers ${playersData.toxic?.includes(name) ? '<span class="tag tag-red">Tóxico</span>' : ''}</div>
-                    </div>
-                </div>
-            `).join('');
-        }
-        
-        function addLog(msg, level, sid, time) {
-            const c = document.getElementById('logsContainer');
-            const t = new Date(time || Date.now()).toLocaleTimeString();
-            const e = document.createElement('div');
-            e.className = 'log-entry log-' + (level || 'info');
-            e.innerHTML = `<span class="log-time">[${t}]</span>${sid ? ` [${sid}]` : ''} ${msg}`;
-            c.appendChild(e);
-            c.scrollTop = c.scrollHeight;
-            while (c.children.length > 200) c.removeChild(c.firstChild);
-        }
-        
-        function clearLogs() { document.getElementById('logsContainer').innerHTML = ''; }
-        
-        function addServer() {
-            const name = document.getElementById('serverName').value;
-            const host = document.getElementById('serverHost').value;
-            const port = parseInt(document.getElementById('serverPort').value) || 25565;
-            if (!host) { toast('Host obrigatório!', 'error'); return; }
-            socket.emit('server:add', { name: name || host, host, port });
-            hideModal('server');
-            document.getElementById('serverName').value = '';
-            document.getElementById('serverHost').value = '';
-        }
-        
-        function addMessage() { const i = document.getElementById('newMessage'); if (i.value.trim()) { socket.emit('message:add', i.value.trim()); i.value = ''; } }
-        function removeMessage(i) { socket.emit('message:remove', i); }
-        function saveSettings() { socket.emit('config:update', { botSettings: { announcementInterval: parseInt(document.getElementById('settingInterval').value) }, auth: { password: document.getElementById('settingPassword').value, autoRegister: true, autoLogin: true } }); toast('Salvo!', 'success'); }
-        
-        function showPlayer(name) {
-            const d = playersData.players[name];
-            if (!d) return;
-            document.getElementById('playerPopupName').textContent = name;
-            document.getElementById('playerPopupContent').innerHTML = `
-                <p><strong>Servidores:</strong> ${(d.servers || []).map(s => `<span class="tag tag-blue">${s}</span>`).join('')}</p>
-                <hr style="border-color: var(--border); margin: 10px 0;">
-                <p><strong>Mensagens:</strong></p>
-                ${(d.messages || []).slice(-10).reverse().map(m => `<div class="player-item"><small>${new Date(m.timestamp).toLocaleString()}</small><br>${m.message}</div>`).join('')}
-            `;
-            document.getElementById('playerPopup').classList.add('active');
-        }
-        
-        function hidePopup() { document.getElementById('playerPopup').classList.remove('active'); }
-        function showModal(n) { document.getElementById('modal-' + n).classList.add('active'); }
-        function hideModal(n) { document.getElementById('modal-' + n).classList.remove('active'); }
-        function toast(msg, type) { const c = document.getElementById('toasts'); const t = document.createElement('div'); t.className = 'toast'; t.style.borderLeft = type === 'success' ? '4px solid var(--green)' : type === 'error' ? '4px solid var(--red)' : '4px solid var(--accent)'; t.textContent = msg; c.appendChild(t); setTimeout(() => t.remove(), 5000); }
-        
-        document.querySelectorAll('.nav-item').forEach(i => i.addEventListener('click', () => { document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); i.classList.add('active'); document.getElementById('tab-' + i.dataset.tab).classList.add('active'); }));
-        document.addEventListener('DOMContentLoaded', connect);
-    </script>
+        <div class="panel"><div class="panel-h">Config</div><div class="panel-b">
+          <div class="inp-row"><label style="font-size:12px;min-width:90px;">Intervalo (s):</label><input type="number" class="inp admin-only" id="intInp" min="10" style="max-width:100px;"><button class="btn primary admin-only" onclick="setInt()">Salvar</button></div>
+          <div class="inp-row"><label style="font-size:12px;min-width:90px;">Username:</label><input class="inp admin-only" id="unameInp" style="max-width:180px;"><button class="btn primary admin-only" onclick="setUname()">Salvar</button></div>
+        </div></div>
+        <div class="panel"><div class="panel-h">Impressões</div><div class="panel-b" id="impressionsPanel"><div style="color:var(--text-muted);font-size:12px;">Carregando...</div></div></div>
+      </div>
+
+      <!-- BLACKLIST -->
+      <div class="page" id="p-blacklist">
+        <div class="inp-row"><input class="inp admin-only" id="blInp" placeholder="ip:porta" style="max-width:260px;"><button class="btn primary admin-only" onclick="addBl()">Adicionar</button><button class="btn danger admin-only" onclick="cmd('clearBlacklist')">Limpar Tudo</button></div>
+        <div class="panel"><div class="panel-h">Permanente</div><div class="panel-b np" id="blPerm"></div></div>
+        <div class="panel"><div class="panel-h">Temporária</div><div class="panel-b np" id="blTemp"></div></div>
+      </div>
+
+      <!-- ANALYTICS -->
+      <div class="page" id="p-analytics">
+        <div class="inp-row"><button class="btn sm" onclick="loadAn('1h')">1H</button><button class="btn sm primary" onclick="loadAn('24h')">24H</button><button class="btn sm" onclick="loadAn('7d')">7D</button></div>
+        <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(120px,1fr));"><div class="stat-card"><div class="sv" id="anMsgs">0</div><div class="sl">Msgs Período</div></div></div>
+        <div class="panel"><div class="panel-h">Msgs / Hora</div><div class="panel-b"><div class="chart-bars" id="anMsgChart" style="height:100px;"></div><div style="height:20px;"></div></div></div>
+        <div class="panel"><div class="panel-h">Players</div><div class="panel-b"><div class="chart-bars" id="anPlayChart" style="height:100px;"></div><div style="height:20px;"></div></div></div>
+        <div class="panel"><div class="panel-h">Top Servidores</div><div class="panel-b np" id="anTopSrv"></div></div>
+      </div>
+
+      <!-- VIEWER -->
+      <div class="page" id="p-viewer">
+        <div class="inp-row"><select class="inp" id="viewerBotSelect" style="max-width:260px;" onchange="loadViewer()"><option value="">Selecione um bot</option></select><button class="btn primary" onclick="loadViewer()">Carregar</button></div>
+        <div class="panel"><div class="panel-h">Visão do Bot</div><div class="panel-b" id="viewerPanel"><div style="color:var(--text-muted);text-align:center;padding:40px;font-size:12px;">Selecione um bot com viewer ativo</div></div></div>
+      </div>
+
+      <!-- TERMINAL -->
+      <div class="page" id="p-terminal">
+        <div class="sys-grid" id="sysGrid">
+          <div class="sys-card"><div class="sv" id="sysUp">—</div><div class="sl">Uptime</div></div>
+          <div class="sys-card"><div class="sv" id="sysMem">—</div><div class="sl">Heap</div></div>
+          <div class="sys-card"><div class="sv" id="sysRss">—</div><div class="sl">RSS</div></div>
+          <div class="sys-card"><div class="sv" id="sysBots">0</div><div class="sl">Bots</div></div>
+          <div class="sys-card"><div class="sv" id="sysChat">0</div><div class="sl">Chat</div></div>
+          <div class="sys-card"><div class="sv" id="sysSrv">0</div><div class="sl">Servers</div></div>
+          <div class="sys-card"><div class="sv" id="sysNode">—</div><div class="sl">Node</div></div>
+          <div class="sys-card"><div class="sv" id="sysPlat">—</div><div class="sl">OS</div></div>
+        </div>
+        <div class="inp-row"><button class="btn primary" onclick="reqSys()">Info</button><button class="btn danger admin-only" onclick="restartBot()">Reiniciar Bot</button><button class="btn" onclick="clearTerm()">Limpar</button></div>
+        <div class="panel"><div class="panel-h"><span>Console</span><span style="font-size:10px;color:var(--text-muted);" id="termCount">0</span></div><div class="panel-b np"><div class="term-screen" id="termScreen"><div class="term-line"><span class="tv">Aguardando bot...</span></div></div></div></div>
+      </div>
+
+      <!-- LOGS -->
+      <div class="page" id="p-logs">
+        <div class="panel"><div class="panel-h"><span>Logs</span><button class="btn sm" onclick="cmd('refresh')">Atualizar</button></div><div class="panel-b np" id="logsP" style="max-height:calc(100vh - 180px);overflow-y:auto;"></div></div>
+      </div>
+
+      <!-- KEYS -->
+      <div class="page" id="p-keys">
+        <div class="panel"><div class="panel-h">Nova Key</div><div class="panel-b">
+          <div class="inp-row"><label style="font-size:12px;min-width:80px;">Label:</label><input class="inp" id="keyLabel" placeholder="Nome do cliente" style="max-width:200px;"></div>
+          <div class="inp-row"><label style="font-size:12px;min-width:80px;">Duração (h):</label><input type="number" class="inp" id="keyDuration" placeholder="24" min="1" style="max-width:100px;"></div>
+          <div class="inp-row"><label style="font-size:12px;min-width:80px;">Anúncio:</label><input class="inp" id="keyAdMsg" placeholder="Mensagem do anúncio pago" style="flex:1;"></div>
+          <button class="btn primary" onclick="createKey()">Criar Key</button>
+        </div></div>
+        <div class="panel"><div class="panel-h">Keys</div><div class="panel-b np" id="keysPanel"></div></div>
+        <div class="panel"><div class="panel-h">Anúncios Pagos</div><div class="panel-b np" id="adsPanel"></div></div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="page" id="p-settings">
+        <div class="panel"><div class="panel-h">Informações</div><div class="panel-b">
+          <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:12px;border-bottom:1px solid var(--border);"><span>Relay</span><span style="color:var(--cyan);" id="setRelay">—</span></div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:12px;border-bottom:1px solid var(--border);"><span>Bot</span><span style="color:var(--cyan);" id="setBot">—</span></div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:12px;border-bottom:1px solid var(--border);"><span>Papel</span><span style="color:var(--cyan);" id="setRole">—</span></div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:12px;"><span>Versão</span><span style="color:var(--cyan);">9.0</span></div>
+        </div></div>
+        <div class="panel"><div class="panel-h">Dados</div><div class="panel-b"><div class="inp-row"><button class="btn admin-only" onclick="cmd('saveChat')">Salvar Chat</button><button class="btn" onclick="dlChat()">Exportar Chat</button><button class="btn" onclick="exportLearn()">Exportar Learning</button></div></div></div>
+      </div>
+
+    </div><!-- /content -->
+  </main>
+</div><!-- /app -->
+
+<div class="toast-c" id="toastC"></div>
+
+<script>
+let socket=null,currentUser=null,currentRole=null,currentPage='dashboard',botOnline=false;
+let allBots=[],allServers=[],allChat=[],allLogs=[],stats={},analyticsData={},learningData={},topServerChat={},sessionToken=null;
+let inventoryData={},isMobile=window.innerWidth<=768;
+const RELAY=window.location.origin;
+
+let _eventsSetup=false,_keepAliveInterval=null,_periodicIntervals=[];
+let sidebarCollapsed=false;
+
+// Show relay in login
+document.getElementById('loginRelayInfo').textContent='relay: '+RELAY;
+
+// ══ SIDEBAR ══
+function toggleCollapse(){
+  sidebarCollapsed=!sidebarCollapsed;
+  document.getElementById('sidebar').classList.toggle('collapsed',sidebarCollapsed);
+  document.getElementById('main').classList.toggle('exp',sidebarCollapsed);
+}
+function toggleSidebar(){
+  const sb=document.getElementById('sidebar');
+  sb.classList.toggle('open');
+}
+function closeSidebar(){ document.getElementById('sidebar').classList.remove('open'); }
+window.addEventListener('resize',()=>{ isMobile=window.innerWidth<=768; });
+
+// ══ LOGIN ══
+function doLogin(){
+  const u=document.getElementById('loginUser').value.trim();
+  const p=document.getElementById('loginPass').value.trim();
+  if(!u){ showLoginError('Preencha o usuário.'); return; }
+  if(!p){ showLoginError('Preencha a senha.'); return; }
+  const btn=document.getElementById('loginBtn');
+  const spinner=document.getElementById('loginSpinner');
+  btn.disabled=true; spinner.style.display='block';
+  document.getElementById('loginBtnText').textContent='Conectando...';
+  document.getElementById('loginError').style.display='none';
+  if(socket){ socket.disconnect(); socket=null; }
+  socket=io(RELAY,{reconnection:true,reconnectionDelay:2000});
+  const loginTimeout=setTimeout(()=>{ showLoginError('Servidor não respondeu. Tente novamente.'); resetLoginBtn(); if(socket){ socket.disconnect(); socket=null; } },15000);
+  socket.on('connect',()=>{
+    clearTimeout(loginTimeout);
+    socket.emit('authenticate',{username:u,password:p},(r)=>{
+      if(r.success){
+        currentUser=r.username; currentRole=r.role; sessionToken=r.sessionToken;
+        document.getElementById('loginOverlay').classList.add('hidden');
+        document.getElementById('app').style.display='flex';
+        document.getElementById('sbUser').textContent=currentUser;
+        document.getElementById('sbAvatar').textContent=currentUser[0].toUpperCase();
+        const rl=r.role==='admin'?'Admin':r.role==='viewer'?'Viewer':'Client';
+        const roleEl=document.getElementById('sbRole');
+        roleEl.textContent=rl; roleEl.className='role-badge '+r.role;
+        document.getElementById('setRole').textContent=rl;
+        document.getElementById('setRelay').textContent=RELAY;
+        document.getElementById('tbSub').textContent=currentUser+' · '+r.role;
+        applyPerms(); startKeepAlive(); startPeriodicIntervals();
+        toast('Login realizado — '+currentUser);
+        if(r.role==='client'&&r.keyData) showClientInfo(r.keyData);
+      }else{
+        showLoginError(r.error||'Credenciais inválidas.');
+        resetLoginBtn();
+      }
+    });
+  });
+  socket.on('connect_error',()=>{ clearTimeout(loginTimeout); showLoginError('Erro de conexão com o servidor!'); resetLoginBtn(); });
+  socket.on('requireAuth',()=>{});
+  socket.on('sessionExpired',()=>{ toast('Sessão expirou!'); doLogout(); });
+  setupEvents();
+}
+function showLoginError(msg){ const el=document.getElementById('loginError'); el.textContent=msg; el.style.display='block'; }
+function resetLoginBtn(){ const btn=document.getElementById('loginBtn'),spinner=document.getElementById('loginSpinner'); btn.disabled=false; spinner.style.display='none'; document.getElementById('loginBtnText').textContent='Entrar'; }
+function doLogout(){
+  _periodicIntervals.forEach(id=>clearInterval(id)); _periodicIntervals=[];
+  if(_keepAliveInterval){ clearInterval(_keepAliveInterval); _keepAliveInterval=null; }
+  _eventsSetup=false;
+  if(socket){ socket.disconnect(); socket=null; }
+  currentUser=null; currentRole=null; sessionToken=null;
+  allBots=[]; allServers=[]; allChat=[]; allLogs=[]; stats={}; learningData={}; topServerChat={}; inventoryData={};
+  const clearIds=['botsPanel','botsFull','chatMsgs','dashLogs','logsP','topSrvPanel','srvsPanel','playersPanel','tscPanel'];
+  clearIds.forEach(id=>{ const el=document.getElementById(id); if(el) el.innerHTML=''; });
+  ['sBots','sServers','sMsgs','sBl','sPlayers'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent='0'; });
+  document.getElementById('loginOverlay').classList.remove('hidden');
+  document.getElementById('app').style.display='none';
+  resetLoginBtn();
+  document.getElementById('loginUser').value='';
+  document.getElementById('loginPass').value='';
+  // reset bot status
+  document.getElementById('botDot').className='tb-ldot status-dot offline';
+  document.getElementById('botText').textContent='Offline';
+  document.getElementById('botText').style.color='var(--text-muted)';
+  const sbDot=document.getElementById('sbBotDot'), sbTxt=document.getElementById('sbBotText');
+  if(sbDot){ sbDot.style.background='var(--text-muted)'; sbDot.style.boxShadow='none'; }
+  if(sbTxt){ sbTxt.textContent='Offline'; sbTxt.style.color='var(--text-muted)'; }
+}
+function applyPerms(){
+  if(currentRole==='viewer'||currentRole==='client'){
+    document.querySelectorAll('.admin-only').forEach(el=>{ el.classList.add('no-perm'); el.title='Sem permissão'; });
+  }else{
+    document.querySelectorAll('.admin-only').forEach(el=>{ el.classList.remove('no-perm'); el.title=''; });
+  }
+}
+function startKeepAlive(){
+  if(_keepAliveInterval) clearInterval(_keepAliveInterval);
+  _keepAliveInterval=setInterval(()=>{
+    if(socket&&sessionToken) socket.emit('keepAlive',{sessionToken},(r)=>{ if(r&&!r.valid){ toast('Sessão expirou!'); doLogout(); } });
+  },30000);
+}
+function startPeriodicIntervals(){
+  const id1=setInterval(()=>{ if(socket?.connected) socket.emit('getTopServerChat'); const s=document.getElementById('sMsgs'); if(s) s.textContent=allChat.length; },15000);
+  const id2=setInterval(()=>{ if(currentPage==='keys'&&currentRole==='admin') loadKeys(); },30000);
+  _periodicIntervals.push(id1,id2);
+}
+function showClientInfo(kd){ const rem=kd.remainingMs||0; const h=Math.floor(rem/3600000),m=Math.floor((rem%3600000)/60000); toast(`Bem-vindo ${kd.label}! Tempo: ${h}h ${m}m`); }
+
+// ══ EVENTS ══
+function setupEvents(){
+  if(_eventsSetup) return; _eventsSetup=true;
+  socket.on('init',(d)=>{
+    if(d.stats){ stats=d.stats; updateStats(); }
+    if(d.bots){ allBots=d.bots; renderBots(); updateBotSelectors(); }
+    if(d.logs){ allLogs=d.logs; renderLogs(); }
+    if(d.chatDatabase){ allChat=d.chatDatabase; renderChat(); updateChatFilters(); }
+    if(d.servers){ allServers=d.servers; renderSrvs(); }
+    if(d.topServerChat){ topServerChat=d.topServerChat; renderTSC(); }
+  });
+  socket.on('botStatus',(on)=>{
+    botOnline=on;
+    const dot=document.getElementById('botDot'), txt=document.getElementById('botText');
+    dot.className='tb-ldot status-dot '+(on?'online':'offline');
+    txt.textContent=on?'Online':'Offline';
+    txt.style.color=on?'var(--green)':'var(--text-muted)';
+    const sbDot=document.getElementById('sbBotDot'), sbTxt=document.getElementById('sbBotText');
+    if(sbDot){ sbDot.style.background=on?'var(--green)':'var(--text-muted)'; sbDot.style.boxShadow=on?'0 0 8px var(--green)':'none'; }
+    if(sbTxt){ sbTxt.textContent=on?'Online':'Offline'; sbTxt.style.color=on?'var(--green)':'var(--text-muted)'; }
+    document.getElementById('setBot').textContent=on?'Online':'Offline';
+    document.getElementById('sbBotSub').textContent=on?(allBots.filter(b=>b.conectado).length+' bots · '+allServers.filter(s=>s.status==='online').length+' servers'):'Aguardando...';
+  });
+  socket.on('statsUpdate',(d)=>{ stats=d; updateStats(); });
+  socket.on('botsUpdate',(d)=>{
+    allBots=d||[]; renderBots(); updateBotSelectors();
+    const bc=document.getElementById('botsCount'); if(bc) bc.textContent=allBots.filter(b=>b.conectado).length;
+  });
+  socket.on('serverUpdate',(d)=>{
+    if(Array.isArray(d)) allServers=d;
+    else if(d?.key){ const i=allServers.findIndex(s=>s.key===d.key); if(i>=0)allServers[i]={...allServers[i],...d}; else allServers.push(d); }
+    renderSrvs(); updateChatFilters();
+  });
+  socket.on('chatMessage',(m)=>{
+    allChat.push(m); if(allChat.length>5000)allChat.shift();
+    if(currentPage==='chat') appendChat(m);
+  });
+  socket.on('chatMessages',(m)=>{ allChat=m||[]; renderChat(); });
+  socket.on('log',(e)=>{ allLogs.push(e); if(allLogs.length>200)allLogs.shift(); appendLog(e); });
+  socket.on('topServerChat',(d)=>{ topServerChat=d; renderTSC(); });
+  socket.on('learningData',(d)=>{ learningData=d; renderLearn(); });
+  socket.on('learningExport',(d)=>{ dlJSON(d,'learning-db.json'); });
+  socket.on('analyticsData',(d)=>{ renderAnalytics(d); });
+  socket.on('fullChat',(d)=>{ dlJSON({exportado:new Date().toISOString(),total:d.length,msgs:d},'chat.json'); });
+  socket.on('chatDownload',(d)=>{ dlJSON(d,'chat.json'); });
+  socket.on('playersDBData',(d)=>{ renderPlayersResult(d); });
+  socket.on('botSystemInfo',(d)=>{ updateSysInfo(d); });
+  socket.on('botConsoleLog',(e)=>{ appendTerm(e); });
+  socket.on('inventoryUpdate',(d)=>{ inventoryData[d.serverKey]=d.inventory; if(currentPage==='inventory')renderInventory(); });
+  socket.on('toast',(m)=>toast(m));
+  socket.on('systemAlert',(a)=>{ toast('ALERTA: '+a.message); });
+  socket.on('impressionsData',(d)=>{ renderImpressions(d); });
+  socket.on('disconnect',()=>{
+    document.getElementById('botDot').className='tb-ldot status-dot offline';
+    document.getElementById('botText').textContent='Desconectado';
+    document.getElementById('botText').style.color='var(--text-muted)';
+    const sbDot=document.getElementById('sbBotDot'), sbTxt=document.getElementById('sbBotText');
+    if(sbDot){ sbDot.style.background='var(--text-muted)'; sbDot.style.boxShadow='none'; }
+    if(sbTxt){ sbTxt.textContent='Offline'; sbTxt.style.color='var(--text-muted)'; }
+  });
+  socket.on('reconnect',()=>{
+    if(sessionToken) socket.emit('keepAlive',{sessionToken},(r)=>{ if(!r?.valid) doLogout(); else toast('Reconectado!'); });
+  });
+}
+
+// ══ NAV ══
+function nav(p){
+  currentPage=p;
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+  document.getElementById('p-'+p)?.classList.add('active');
+  document.querySelector(`.nav-item[data-page="${p}"]`)?.classList.add('active');
+  const t={dashboard:'Dashboard',bots:'Bots',chat:'Chat',learning:'Aprendizado',servers:'Servidores',players:'Players',inventory:'Inventário',messages:'Mensagens',blacklist:'Blacklist',analytics:'Analytics',viewer:'Viewer 3D',terminal:'Terminal',logs:'Logs',keys:'Keys/Ads',settings:'Config'};
+  document.getElementById('pageTitle').textContent=t[p]||p;
+  if(p==='analytics') loadAn('24h');
+  if(p==='learning') reqLearn();
+  if(p==='chat'&&socket?.connected) filterChat();
+  if(p==='terminal') reqSys();
+  if(p==='keys') loadKeys();
+  if(p==='players'&&socket?.connected) searchPlayers();
+  if(p==='messages'&&socket?.connected) socket.emit('getImpressions');
+  if(p==='inventory') updateBotSelectors();
+  if(p==='viewer') updateBotSelectors();
+  if(isMobile) closeSidebar();
+}
+
+// ══ STATS ══
+function updateStats(){
+  document.getElementById('sBots').textContent=stats.botsAtivos||0;
+  document.getElementById('sMsgs').textContent=allChat.length;
+  document.getElementById('sBl').textContent=stats.blacklistSize||0;
+  document.getElementById('sImpressions').textContent=stats.impressions?.total||0;
+  const on=allServers.filter(s=>s.status==='online');
+  document.getElementById('sServers').textContent=on.length;
+  let tp=0; allServers.forEach(s=>{ if(s.players&&Array.isArray(s.players))tp+=s.players.length; });
+  document.getElementById('sPlayers').textContent=tp;
+  const blC=document.getElementById('blCount'); if(blC) blC.textContent=stats.blacklistSize||0;
+  if(stats.intervalo) document.getElementById('intInp').value=stats.intervalo;
+  if(stats.username) document.getElementById('unameInp').value=stats.username;
+  renderMsgs(); renderBl(); renderTopSrv(); renderPeakMini();
+}
+
+// ══ BOTS ══
+function renderBots(){
+  const bp=document.getElementById('botsPanel'),fp=document.getElementById('botsFull');
+  const bl=allBots.filter(b=>b.conectado);
+  const empty='<div style="padding:16px;color:var(--text-muted);text-align:center;font-size:12px;">Nenhum bot ativo</div>';
+  if(!bl.length){ bp.innerHTML=empty; fp.innerHTML=empty; return; }
+  const rc=b=>{
+    const isA=currentRole==='admin';
+    const pt=b.protocolType&&b.protocolType!=='vanilla'?` [${b.protocolType}]`:'';
+    const tps=b.tps?` TPS:${b.tps}`:'';
+    const bkey=esc(b.key);
+    return`<div class="bot-card"><div class="bot-dot on"></div><div class="bot-info"><div class="bot-name">${esc(b.username||'?')}${pt}</div><div class="bot-srv">${bkey} (v${b.versao||'?'})${tps}</div>${b.motd?`<div class="bot-motd">${esc(b.motd)}</div>`:''}</div><div class="bot-mini">${b.hp!=null?`<span>HP:${Math.round(b.hp)}</span>`:''} ${b.food!=null?`<span>Food:${Math.round(b.food)}</span>`:''} ${b.players?`<span>Pl:${b.players.length}</span>`:''}</div><div class="bot-actions">${isA?`<button class="btn sm" data-action="jump" data-key="${bkey}">Pular</button><button class="btn sm danger" data-action="disconnect" data-key="${bkey}">Off</button>`:''}</div></div>`;
+  };
+  bp.innerHTML=bl.slice(0,5).map(rc).join('');
+  fp.innerHTML=bl.map(rc).join('');
+  [bp,fp].forEach(panel=>{ panel.querySelectorAll('[data-action]').forEach(btn=>{ btn.addEventListener('click',()=>{ const action=btn.dataset.action,key=btn.dataset.key; if(action==='jump') cmd('jump',key); if(action==='disconnect') cmd('disconnect_server',key); }); }); });
+}
+function updateBotSelectors(){
+  const bl=allBots.filter(b=>b.conectado);
+  const invSel=document.getElementById('invBotSelect');
+  if(invSel){ const cv=invSel.value; invSel.innerHTML='<option value="">Selecione um bot</option>'+bl.map(b=>`<option value="${esc(b.key)}">${esc(b.key)} (${esc(b.username||'?')})</option>`).join(''); if(cv)invSel.value=cv; }
+  const vSel=document.getElementById('viewerBotSelect');
+  if(vSel){ const cv=vSel.value; const withViewer=bl.filter(b=>b.viewerPort); vSel.innerHTML='<option value="">Selecione um bot</option>'+withViewer.map(b=>`<option value="${b.viewerPort}">${esc(b.key)} (porta ${b.viewerPort})</option>`).join(''); if(cv)vSel.value=cv; }
+  updateChatFilters();
+}
+
+// ══ CHAT ══
+function renderChat(){ const c=document.getElementById('chatMsgs'); const msgs=getFiltered().slice(-500); c.innerHTML=msgs.map(fmtChat).join(''); c.scrollTop=c.scrollHeight; }
+function appendChat(m){
+  const c=document.getElementById('chatMsgs');
+  const f=document.getElementById('chatFilter').value;
+  const s=document.getElementById('chatSearch').value.toLowerCase();
+  const st=document.getElementById('chatSType').value;
+  if(f!=='all'&&m.serverKey!==f)return;
+  if(s){ if(st==='player'&&!(m.username||'').toLowerCase().includes(s))return; if(st==='message'&&!(m.message||'').toLowerCase().includes(s))return; if(st==='positive'&&m.sentiment!=='positive')return; if(st==='negative'&&m.sentiment!=='negative')return; if(st==='all'&&!(m.username||'').toLowerCase().includes(s)&&!(m.message||'').toLowerCase().includes(s))return; }
+  else{ if(st==='positive'&&m.sentiment!=='positive')return; if(st==='negative'&&m.sentiment!=='negative')return; }
+  const atBot=c.scrollTop+c.clientHeight>=c.scrollHeight-40;
+  c.insertAdjacentHTML('beforeend',fmtChat(m));
+  while(c.children.length>500)c.removeChild(c.firstChild);
+  if(atBot) c.scrollTop=c.scrollHeight;
+}
+function fmtChat(m){
+  const men=m.botMentioned,isBot=m.isBotMessage;
+  const srv=allServers.find(s=>s.key===m.serverKey);
+  const motd=m.motd||(srv?cleanMotd(srv.motd):'');
+  const sentDot=m.sentiment==='positive'?'<span class="sentiment-dot positive"></span>':m.sentiment==='negative'?'<span class="sentiment-dot negative"></span>':'';
+  const userClass=isBot?'cu bot-user':'cu';
+  const srvKey=esc(m.serverKey);
+  return`<div class="chat-msg${men?' mentioned':''}">${sentDot}<span class="ct">${m.time||''}</span> <span class="cs" data-srv="${srvKey}">[${srvKey}${motd?` — ${esc(motd)}`:''}]</span> <span class="${userClass}">${esc(m.username||'?')}</span>: <span class="cx">${esc(m.message||'')}</span></div>`;
+}
+document.addEventListener('click',e=>{ const el=e.target.closest('.cs[data-srv]'); if(el) filterBySrv(el.dataset.srv); });
+function filterBySrv(k){ document.getElementById('chatFilter').value=k; filterChat(); }
+function filterChat(){
+  if(!socket?.connected) return;
+  const sk=document.getElementById('chatFilter').value;
+  const s=document.getElementById('chatSearch').value;
+  const st=document.getElementById('chatSType').value;
+  let searchVal=s,searchType=st;
+  if(st==='positive'||st==='negative'){ searchType='sentiment'; searchVal=st; }
+  socket.emit('getChatMessages',{serverKey:sk,search:searchVal,searchType:searchType});
+}
+function getFiltered(){
+  const f=document.getElementById('chatFilter')?.value||'all';
+  const s=(document.getElementById('chatSearch')?.value||'').toLowerCase();
+  const st=document.getElementById('chatSType')?.value||'all';
+  let m=allChat;
+  if(f!=='all') m=m.filter(x=>x.serverKey===f);
+  if(st==='positive') m=m.filter(x=>x.sentiment==='positive');
+  else if(st==='negative') m=m.filter(x=>x.sentiment==='negative');
+  if(s){ m=m.filter(x=>{ if(st==='player')return(x.username||'').toLowerCase().includes(s); if(st==='message')return(x.message||'').toLowerCase().includes(s); return(x.username||'').toLowerCase().includes(s)||(x.message||'').toLowerCase().includes(s); }); }
+  return m;
+}
+function updateChatFilters(){
+  const sel=document.getElementById('chatFilter');
+  const send=document.getElementById('chatSendSrv');
+  const curFilter=sel.value,curSend=send.value;
+  const keys=[...new Set([...allChat.map(m=>m.serverKey),...allBots.filter(b=>b.conectado).map(b=>b.key)].filter(Boolean))];
+  let o='<option value="all">Todos</option>';
+  keys.forEach(k=>{ const srv=allServers.find(s=>s.key===k); const motd=srv?cleanMotd(srv.motd):''; o+=`<option value="${esc(k)}">${esc(motd?k+' — '+motd:k)}</option>`; });
+  sel.innerHTML=o; sel.value=curFilter||'all';
+  let so='<option value="all">Todos</option>';
+  allBots.filter(b=>b.conectado).forEach(b=>{ so+=`<option value="${esc(b.key)}">${esc(b.key)}</option>`; });
+  send.innerHTML=so; send.value=curSend||'all';
+}
+function sendChat(){ if(currentRole!=='admin')return; const m=document.getElementById('chatSendMsg').value.trim(),s=document.getElementById('chatSendSrv').value; if(!m)return; socket.emit('chat',{serverKey:s,message:m}); document.getElementById('chatSendMsg').value=''; }
+function sendCmd(){ if(currentRole!=='admin')return; const c=document.getElementById('chatSendCmd').value.trim(),s=document.getElementById('chatSendSrv').value; if(!c)return; socket.emit('command',{serverKey:s,command:c}); document.getElementById('chatSendCmd').value=''; }
+
+// ══ SERVERS ══
+function renderSrvs(){
+  const p=document.getElementById('srvsPanel');
+  const cf=document.getElementById('srvCatF')?.value||'all',sf=document.getElementById('srvStatF')?.value||'all',q=(document.getElementById('srvSearch')?.value||'').toLowerCase();
+  let srvs=allServers;
+  if(cf!=='all') srvs=srvs.filter(s=>(s.categoria||'desconhecido')===cf);
+  if(sf!=='all') srvs=srvs.filter(s=>s.status===sf);
+  if(q) srvs=srvs.filter(s=>s.key.toLowerCase().includes(q)||(cleanMotd(s.motd)||'').toLowerCase().includes(q));
+  srvs.sort((a,b)=>{ if(a.status==='online'&&b.status!=='online')return-1; if(b.status==='online'&&a.status!=='online')return 1; return(b.players?.length||0)-(a.players?.length||0); });
+  if(!srvs.length){ p.innerHTML='<div style="padding:24px;text-align:center;color:var(--text-muted);">Nenhum servidor</div>'; return; }
+  p.innerHTML=srvs.map(s=>{
+    const motd=cleanMotd(s.motd),cat=s.categoria||'desconhecido',rep=s.reputation||50;
+    const sc=s.status==='online'?'var(--success)':s.status==='banned'?'var(--danger)':'var(--text-muted)';
+    const rc=rep>70?'var(--success)':rep>40?'var(--warning)':'var(--danger)';
+    const pc=s.players?.length||s.onlinePlayers||0;
+    const isA=currentRole==='admin';
+    const plugins=(s.plugins||[]).slice(0,8).join(', ');
+    const sw=s.serverSoftware?` [${s.serverSoftware}]`:'';
+    const skey=esc(s.key);
+    return`<div class="srv-card"><div class="srv-head"><div><span class="srv-name" style="color:${sc}">● ${skey}${esc(sw)}</span> <span class="srv-tag ${cat}">${cat}</span>${(s.tags||[]).map(t=>`<span class="srv-tag">${esc(t)}</span>`).join('')}</div><div style="display:flex;gap:3px;align-items:center;">${isA?`<button class="btn sm" data-srv-action="tag" data-key="${skey}">Tag</button><button class="btn sm" data-srv-action="cat" data-key="${skey}">Cat</button><button class="btn sm" data-srv-action="scan" data-key="${skey}">Scan</button><button class="btn sm ${(stats.silentServers||[]).includes(s.key)?'danger':''}" data-srv-action="silent" data-key="${skey}">${(stats.silentServers||[]).includes(s.key)?'Unsilent':'Silent'}</button>`:''}<span style="font-size:10px;color:var(--text-muted);">Pl:${pc}/${s.maxPlayers||'?'}</span></div></div>${motd?`<div class="srv-motd">"${esc(motd)}"</div>`:''}<div class="srv-meta"><span>v${s.version||'?'}</span><span>${s.status}</span>${s.ping?`<span>Ping:${s.ping}ms</span>`:''}<span>Rep:${rep}</span></div>${plugins?`<div class="srv-plugins">Plugins: ${esc(plugins)}</div>`:''}<div class="rep-bar"><div class="fill" style="width:${rep}%;background:${rc}"></div></div></div>`;
+  }).join('');
+  p.querySelectorAll('[data-srv-action]').forEach(btn=>{ btn.addEventListener('click',()=>{ const action=btn.dataset.srvAction,key=btn.dataset.key; if(action==='tag'){ const t=prompt('Tag:'); if(t) socket.emit('addServerTag',{serverKey:key,tag:t.trim()}); } if(action==='cat'){ const c=prompt('Categoria:'); if(c) socket.emit('setServerCategory',{serverKey:key,categoria:c.trim()}); } if(action==='scan'){ socket.emit('scanVulnerabilities',key); toast(`Scan: ${key}`); } if(action==='silent') toggleSilent(key); }); });
+}
+function toggleSilent(k){ socket.emit('setSilentServer',{serverKey:k,silent:!(stats.silentServers||[]).includes(k)}); }
+
+// ══ PLAYERS ══
+function searchPlayers(){ if(!socket?.connected) return; const q=document.getElementById('playerSearch').value.trim(); const toxic=document.getElementById('playerToxicOnly').checked; socket.emit('getPlayersDB',{search:q,toxic:toxic||undefined}); }
+function renderPlayersResult(players){
+  const p=document.getElementById('playersPanel');
+  if(!players||!players.length){ p.innerHTML='<div style="padding:24px;text-align:center;color:var(--text-muted);">Nenhum player encontrado</div>'; return; }
+  p.innerHTML=players.map(pl=>{
+    const roles=(pl.roles||[]).map(r=>`<span class="player-role">${r}</span>`).join(' ');
+    const lastDate=pl.lastSeen?new Date(pl.lastSeen).toLocaleString('pt-BR'):'?';
+    const sentTotal=(pl.sentiment?.positive||0)+(pl.sentiment?.negative||0)+(pl.sentiment?.neutral||0);
+    const sentPct=sentTotal>0?Math.round((pl.sentiment.positive/sentTotal)*100):50;
+    return`<div class="player-card"><div class="player-head"><img class="player-avatar" src="https://mc-heads.net/avatar/${esc(pl.username)}/32" onerror="this.src='https://mc-heads.net/avatar/Steve/32'"><div><div class="player-name">${esc(pl.username)} ${roles} ${pl.toxic?'<span class="player-toxic">TOXICO</span>':''}</div><div style="font-size:10px;color:var(--text-muted);">Visto: ${lastDate}</div></div></div><div class="player-stats"><span>Msgs: ${pl.messageCount||0}</span><span>Srvs: ${(pl.servers||[]).length}</span><span>Peak: ${pl.peakHour||'?'}h</span><span>Pos: ${sentPct}%</span></div>${pl.messages&&pl.messages.length>0?`<div style="margin-top:6px;font-size:11px;color:var(--text-dim);">${pl.messages.slice(-3).map(m=>`<div><span style="color:var(--text-muted);">[${esc(m.server||'')}]</span> ${esc(m.text||'')}</div>`).join('')}</div>`:''}</div>`;
+  }).join('');
+}
+
+// ══ INVENTORY ══
+function renderInventory(){
+  const sel=document.getElementById('invBotSelect'),key=sel.value;
+  const armorP=document.getElementById('invArmor'),itemsP=document.getElementById('invItems');
+  if(!key){ armorP.innerHTML='<div style="color:var(--text-muted);font-size:12px;">Selecione um bot</div>'; itemsP.innerHTML=armorP.innerHTML; return; }
+  const bot=allBots.find(b=>b.key===key),inv=bot?.inventory||inventoryData[key];
+  if(!inv){ armorP.innerHTML='<div style="color:var(--text-muted);font-size:12px;">Sem dados</div>'; itemsP.innerHTML=armorP.innerHTML; return; }
+  armorP.innerHTML=(inv.armor||[]).length?`<div class="inv-grid">${inv.armor.map(a=>`<div class="inv-slot armor"><div class="inv-name">${esc(a.displayName||a.name)}</div></div>`).join('')}</div>`:'<div style="color:var(--text-muted);font-size:12px;">Sem armadura</div>';
+  itemsP.innerHTML=(inv.items||[]).length?`<div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;">${inv.usedSlots||0}/${inv.totalSlots||36} slots</div><div class="inv-grid">${inv.items.map(i=>`<div class="inv-slot"><div class="inv-name">${esc(i.displayName||i.name)}</div><div class="inv-count">x${i.count}</div></div>`).join('')}</div>`:'<div style="color:var(--text-muted);font-size:12px;">Inventário vazio</div>';
+}
+
+// ══ VIEWER ══
+function loadViewer(){
+  const sel=document.getElementById('viewerBotSelect');
+  const port=sel.value,panel=document.getElementById('viewerPanel');
+  if(!port){ panel.innerHTML='<div style="color:var(--text-muted);text-align:center;padding:40px;font-size:12px;">Selecione um bot</div>'; return; }
+  const viewerHost=window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1'?`http://${window.location.hostname}:${port}`:`${window.location.protocol}//${window.location.hostname}:${port}`;
+  panel.innerHTML=`<iframe class="viewer-frame" src="${esc(viewerHost)}" frameborder="0" allowfullscreen></iframe><div style="font-size:10px;color:var(--text-muted);margin-top:6px;">Porta: ${esc(port)}</div>`;
+}
+
+// ══ IMPRESSIONS ══
+function renderImpressions(data){
+  const p=document.getElementById('impressionsPanel');
+  if(!data||!data.total){ p.innerHTML='<div style="color:var(--text-muted);font-size:12px;">Sem dados</div>'; return; }
+  let h=`<div style="font-size:12px;margin-bottom:8px;">Total: <strong>${data.total}</strong></div>`;
+  if(data.byMessage){ h+='<div style="font-size:11px;font-weight:600;margin-bottom:4px;">Por Mensagem:</div>'; Object.entries(data.byMessage).forEach(([k,v])=>{ h+=`<div style="font-size:11px;padding:2px 0;color:var(--text-dim);">${esc(k)}: ${v.count}x em ${v.servers.length} servers</div>`; }); }
+  p.innerHTML=h;
+}
+
+// ══ TOP SERVER ══
+function renderTopSrv(){
+  const p=document.getElementById('topSrvPanel');
+  const ss={}; allChat.forEach(m=>{ if(!m.serverKey)return; if(!ss[m.serverKey])ss[m.serverKey]={msgs:0,pl:new Set()}; ss[m.serverKey].msgs++; if(m.username)ss[m.serverKey].pl.add(m.username); });
+  const top=Object.entries(ss).map(([k,d])=>({key:k,msgs:d.msgs,pl:d.pl.size})).sort((a,b)=>b.msgs-a.msgs).slice(0,3);
+  if(!top.length){ p.innerHTML='<div style="padding:16px;color:var(--text-muted);text-align:center;font-size:12px;">Aguardando...</div>'; return; }
+  const medals=['#1','#2','#3'];
+  p.innerHTML=top.map((s,i)=>{ const srv=allServers.find(x=>x.key===s.key); const motd=srv?cleanMotd(srv.motd):''; return`<div class="bot-card"><div style="font-size:14px;font-weight:800;color:var(--cyan);min-width:22px;">${medals[i]}</div><div class="bot-info"><div class="bot-name">${esc(s.key)}</div>${motd?`<div class="bot-motd">${esc(motd)}</div>`:''}</div><div class="bot-mini"><span>Msg:${s.msgs}</span><span>Pl:${s.pl}</span></div></div>`; }).join('');
+}
+function renderTSC(){
+  const p=document.getElementById('tscPanel');
+  if(!topServerChat.serverKey){ p.innerHTML='<div style="padding:16px;color:var(--text-muted);text-align:center;font-size:12px;">Nenhum</div>'; return; }
+  let h=`<div class="tsc-h"><strong>${esc(topServerChat.serverKey)}</strong>${topServerChat.motd?' — <em>'+esc(topServerChat.motd)+'</em>':''}<span style="float:right;">Pl:${topServerChat.players||0}</span></div>`;
+  (topServerChat.messages||[]).slice(-25).forEach(m=>{ h+=`<div class="tsc-m"><span style="color:var(--text-muted);font-size:9px;">${m.time||''}</span> <span style="color:var(--success);font-weight:600;">${esc(m.username||'?')}</span>: ${esc(m.message||'')}</div>`; });
+  p.innerHTML=h; p.scrollTop=p.scrollHeight;
+}
+function renderPeakMini(){
+  const c=document.getElementById('peakChart');
+  const hrs={}; allChat.forEach(m=>{ if(!m.timestamp)return; const h=new Date(m.timestamp).getHours(); hrs[h]=(hrs[h]||0)+1; });
+  const data=[]; for(let i=0;i<24;i++)data.push({hour:i,count:hrs[i]||0});
+  renderBars(c,data,'hour','count',h=>h+'h');
+}
+
+// ══ LOGS ══
+function renderLogs(){
+  const p=document.getElementById('logsP'),dp=document.getElementById('dashLogs');
+  const h=allLogs.slice(-100).reverse().map(fmtLog).join('');
+  p.innerHTML=h; dp.innerHTML=allLogs.slice(-10).reverse().map(fmtLog).join('');
+}
+function fmtLog(l){ return`<div class="log-e"><span class="log-t">[${l.time||''}]</span> ${esc(l.emoji||'')} ${esc(l.msg||'')}</div>`; }
+function appendLog(e){
+  const p=document.getElementById('logsP'),dp=document.getElementById('dashLogs');
+  const h=fmtLog(e);
+  p.insertAdjacentHTML('afterbegin',h); while(p.children.length>100)p.removeChild(p.lastChild);
+  dp.insertAdjacentHTML('afterbegin',h); while(dp.children.length>10)dp.removeChild(dp.lastChild);
+}
+
+// ══ MESSAGES ══
+function renderMsgs(){
+  const p=document.getElementById('msgsPanel');
+  const msgs=stats.mensagens||[];
+  if(!msgs.length){ p.innerHTML='<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:12px;">Nenhuma mensagem</div>'; return; }
+  const isA=currentRole==='admin';
+  p.innerHTML=msgs.map((m,i)=>`<div class="msg-item"><span class="msg-idx">#${i+1}</span><span class="msg-txt">${esc(m)}</span>${isA?`<button class="btn sm danger" data-del-idx="${i}">Del</button>`:''}</div>`).join('');
+  if(isA) p.querySelectorAll('[data-del-idx]').forEach(b=>b.addEventListener('click',()=>delMsg(parseInt(b.dataset.delIdx))));
+}
+
+// ══ BLACKLIST ══
+function renderBl(){
+  const pp=document.getElementById('blPerm'),tp=document.getElementById('blTemp');
+  const items=stats.blacklistItems||[],temp=stats.tempBlacklistItems||[];
+  const isA=currentRole==='admin';
+  pp.innerHTML=items.length?items.map(k=>`<div class="bl-item"><span class="bl-type perm">Perm</span><span style="flex:1;">${esc(k)}</span>${isA?`<button class="btn sm" data-bl-key="${esc(k)}">X</button>`:''}</div>`).join(''):'<div style="padding:12px;text-align:center;color:var(--text-muted);font-size:12px;">Vazio</div>';
+  tp.innerHTML=temp.length?temp.map(t=>`<div class="bl-item"><span class="bl-type temp">${t.remainingMin||'?'}m</span><span style="flex:1;">${esc(t.key)}</span><span style="font-size:10px;color:var(--text-muted);">${esc(t.reason||'')}</span>${isA?`<button class="btn sm" data-bl-key="${esc(t.key)}">X</button>`:''}</div>`).join(''):'<div style="padding:12px;text-align:center;color:var(--text-muted);font-size:12px;">Vazio</div>';
+  [pp,tp].forEach(panel=>{ panel.querySelectorAll('[data-bl-key]').forEach(btn=>btn.addEventListener('click',()=>cmd('removeBlacklist',btn.dataset.blKey))); });
+}
+
+// ══ LEARNING ══
+function renderLearn(){
+  if(!learningData?.totalMensagens) return;
+  document.getElementById('lTotal').textContent=learningData.totalMensagens||0;
+  document.getElementById('lMin').textContent=(learningData.padroes?.percentMinuscula||0)+'%';
+  document.getElementById('lAcento').textContent=(learningData.padroes?.percentAcento||0)+'%';
+  document.getElementById('lAbrev').textContent=(learningData.padroes?.percentAbreviacao||0)+'%';
+  const isA=currentRole==='admin';
+  document.getElementById('giriasC').innerHTML=(learningData.topGirias||[]).map(([w,c])=>`<span class="word-tag">${esc(w)} <span class="cnt">(${c})</span>${isA?`<span class="word-del" data-learn-type="giria" data-learn-val="${esc(w)}" title="Remover">×</span>`:''}</span>`).join('');
+  document.getElementById('exprC').innerHTML=(learningData.topExpressoes||[]).map(e=>`<span class="word-tag">${esc(e.texto)} <span class="cnt">(${e.count})</span>${isA?`<span class="word-del" data-learn-type="expressao" data-learn-val="${esc(e.texto)}" title="Remover">×</span>`:''}</span>`).join('');
+  ['giriasC','exprC'].forEach(id=>{ document.getElementById(id).querySelectorAll('[data-learn-type]').forEach(el=>el.addEventListener('click',()=>removeLearnItem(el.dataset.learnType,el.dataset.learnVal))); });
+  const fp=document.getElementById('frasesP');
+  const fr=learningData.topFrases||[];
+  fp.innerHTML=fr.length?fr.map(f=>`<div class="msg-item"><span class="msg-txt">"${esc(f.texto)}"</span><span style="font-size:10px;color:var(--text-muted);">x${f.count}</span>${isA?`<button class="btn sm danger" data-learn-type="frase" data-learn-val="${esc(f.texto)}">Del</button>`:''}</div>`).join(''):'<div style="padding:12px;text-align:center;color:var(--text-muted);font-size:12px;">Nenhuma</div>';
+  if(isA) fp.querySelectorAll('[data-learn-type]').forEach(b=>b.addEventListener('click',()=>removeLearnItem(b.dataset.learnType,b.dataset.learnVal)));
+}
+function reqLearn(){ if(socket) socket.emit('getLearningData'); }
+function exportLearn(){ if(socket) socket.emit('exportLearningDB'); }
+function removeLearnItem(type,value){ if(currentRole!=='admin')return; if(!confirm(`Remover "${value}"?`))return; socket.emit('removeLearnItem',{type,value}); toast('Removido'); setTimeout(reqLearn,1000); }
+
+// ══ ANALYTICS ══
+function loadAn(p){ if(socket) socket.emit('getAnalytics',p); }
+function renderAnalytics(d){
+  document.getElementById('anMsgs').textContent=d.totalMessages||0;
+  const md=[]; for(let i=0;i<24;i++){ const e=(d.messagesPerHour||[]).find(x=>x.hour===i); md.push({hour:i,count:e?e.count:0}); }
+  renderBars(document.getElementById('anMsgChart'),md,'hour','count',h=>h+'h');
+  const pd=(d.playersOverTime||[]).slice(-48);
+  if(pd.length>0){ const s=[],step=Math.max(1,Math.floor(pd.length/24)); for(let i=0;i<pd.length;i+=step){ const dt=new Date(pd[i].timestamp); s.push({label:dt.getHours()+':'+String(dt.getMinutes()).padStart(2,'0'),count:pd[i].total}); } renderBars(document.getElementById('anPlayChart'),s,'label','count'); }
+  const tp=document.getElementById('anTopSrv');
+  const top=d.topServers||[];
+  tp.innerHTML=top.length?top.map((s,i)=>`<div class="bot-card"><div style="min-width:20px;font-weight:800;color:var(--cyan);">#${i+1}</div><div class="bot-info"><div class="bot-name">${esc(s.serverKey)}</div></div><div class="bot-mini"><span>Msg:${s.messages}</span><span>Pl:${s.uniquePlayers}</span></div></div>`).join(''):'<div style="padding:12px;text-align:center;color:var(--text-muted);font-size:12px;">Sem dados</div>';
+}
+
+// ══ CHART ══
+function renderBars(c,data,lk,vk,fmt){
+  if(!data||!data.length){ c.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);font-size:11px;">Sem dados</div>'; return; }
+  const mx=Math.max(...data.map(d=>d[vk]||0),1);
+  c.innerHTML=data.map(d=>{ const v=d[vk]||0; const h=Math.max(2,(v/mx)*100); const l=fmt?fmt(d[lk]):d[lk]; return`<div class="chart-bar" style="height:${h}%" title="${l}: ${v}">${v>0?`<div class="bv">${v}</div>`:''}<div class="bl">${l}</div></div>`; }).join('');
+}
+
+// ══ TERMINAL ══
+function updateSysInfo(d){
+  if(d.uptime) document.getElementById('sysUp').textContent=d.uptime;
+  if(d.memory){ if(d.memory.heapUsed)document.getElementById('sysMem').textContent=d.memory.heapUsed+'MB'; if(d.memory.rss)document.getElementById('sysRss').textContent=d.memory.rss+'MB'; }
+  if(d.botsAtivos!==undefined) document.getElementById('sysBots').textContent=d.botsAtivos;
+  if(d.chatMessages!==undefined) document.getElementById('sysChat').textContent=d.chatMessages;
+  if(d.servidores!==undefined) document.getElementById('sysSrv').textContent=d.servidores;
+  if(d.nodeVersion) document.getElementById('sysNode').textContent=d.nodeVersion;
+  if(d.platform) document.getElementById('sysPlat').textContent=d.platform;
+}
+function appendTerm(e){
+  const s=document.getElementById('termScreen'); if(!s) return;
+  const t=e.text||''; let cls='';
+  if(t.includes('ERROR')||t.includes('FATAL')) cls=' err'; else if(t.includes('OK')) cls=' ok'; else if(t.includes('WARN')) cls=' warn';
+  const l=document.createElement('div'); l.className='term-line'+cls;
+  l.innerHTML=`<span class="tt">[${esc(e.time||'')}]</span> <span class="tv">${esc(t)}</span>`;
+  s.appendChild(l); while(s.children.length>800)s.removeChild(s.firstChild);
+  s.scrollTop=s.scrollHeight;
+  document.getElementById('termCount').textContent=s.children.length;
+}
+function clearTerm(){ document.getElementById('termScreen').innerHTML='<div class="term-line"><span class="tv">Limpo.</span></div>'; }
+function reqSys(){ if(socket) socket.emit('getBotSystemInfo'); }
+function restartBot(){ if(currentRole!=='admin')return; if(!confirm('Reiniciar bot?'))return; socket.emit('restartBotProcess'); }
+
+// ══ KEYS ══
+function loadKeys(){ if(!socket||currentRole!=='admin') return; socket.emit('getKeys',(keys)=>{ renderKeys(keys); }); socket.emit('getAds',(ads)=>{ renderAds(ads); }); }
+function createKey(){
+  const label=document.getElementById('keyLabel').value.trim();
+  const dur=parseInt(document.getElementById('keyDuration').value)||24;
+  const msg=document.getElementById('keyAdMsg').value.trim();
+  if(!label){ toast('Informe um label!'); return; }
+  socket.emit('createKey',{label,durationHours:dur,adMessage:msg},(r)=>{ if(r.success){ toast(`Key criada: ${r.key}`); document.getElementById('keyLabel').value=''; document.getElementById('keyDuration').value=''; document.getElementById('keyAdMsg').value=''; loadKeys(); } else toast('Erro ao criar key'); });
+}
+function renderKeys(keys){
+  const p=document.getElementById('keysPanel');
+  if(!keys||!keys.length){ p.innerHTML='<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:12px;">Nenhuma key</div>'; return; }
+  p.innerHTML=keys.map(k=>{ const exp=k.expiresAt?new Date(k.expiresAt).toLocaleString('pt-BR'):'Sem expiração'; const kkey=esc(k.fullKey||k.key),kid=esc(k.id); return`<div class="key-card"><div style="display:flex;justify-content:space-between;align-items:center;"><strong>${esc(k.label||'?')}</strong><span style="font-size:10px;color:${k.active?'var(--success)':'var(--danger)'};">${k.active?'Ativa':'Inativa'}</span></div><div class="key-value">${kkey}</div><div class="key-meta"><span>${new Date(k.createdAt).toLocaleDateString('pt-BR')}</span><span>${exp}</span><span>${esc(k.createdBy||'?')}</span></div><div style="margin-top:8px;display:flex;gap:4px;flex-wrap:wrap;">${k.active?`<button class="btn sm danger" data-key-action="revoke" data-key-id="${kid}">Revogar</button>`:''}<button class="btn sm" data-key-action="delete" data-key-id="${kid}">Deletar</button><button class="btn sm" data-key-action="copy" data-key-val="${kkey}">Copiar</button></div></div>`; }).join('');
+  p.querySelectorAll('[data-key-action]').forEach(btn=>{ btn.addEventListener('click',()=>{ const a=btn.dataset.keyAction; if(a==='revoke') revokeKey(btn.dataset.keyId); if(a==='delete') deleteKey(btn.dataset.keyId); if(a==='copy') copyKey(btn.dataset.keyVal); }); });
+}
+function renderAds(ads){
+  const p=document.getElementById('adsPanel');
+  if(!ads||!ads.length){ p.innerHTML='<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:12px;">Nenhum</div>'; document.getElementById('sAds').textContent='0'; return; }
+  const active=ads.filter(a=>a.status==='active'); document.getElementById('sAds').textContent=active.length;
+  p.innerHTML=ads.map(a=>{ const pct=a.totalMs>0?Math.max(0,Math.min(100,(a.remainingMs/a.totalMs)*100)):0; const rem=a.remainingMs>0?`${Math.floor(a.remainingMs/3600000)}h ${Math.floor((a.remainingMs%3600000)/60000)}m`:'Expirado'; return`<div class="ad-card"><div style="display:flex;justify-content:space-between;"><strong style="font-size:12px;">${esc(a.label||'?')}</strong><span style="font-size:10px;color:${a.status==='active'?'var(--success)':'var(--danger)'};">${a.status}</span></div><div style="font-size:11px;color:var(--text-dim);margin:4px 0;">"${esc(a.message||'')}"</div><div style="font-size:10px;color:var(--text-muted);">Restante: ${rem}</div><div class="ad-progress"><div class="fill" style="width:${pct}%"></div></div></div>`; }).join('');
+}
+function revokeKey(id){ if(confirm('Revogar esta key?')) socket.emit('revokeKey',id,(r)=>{ if(r.success){ toast('Key revogada!'); loadKeys(); } }); }
+function deleteKey(id){ if(confirm('Deletar esta key?')) socket.emit('deleteKey',id,(r)=>{ if(r.success){ toast('Key deletada!'); loadKeys(); } }); }
+function copyKey(k){
+  if(navigator.clipboard&&window.isSecureContext){ navigator.clipboard.writeText(k).then(()=>toast('Copiada!')).catch(()=>fallbackCopy(k)); }
+  else { fallbackCopy(k); }
+}
+function fallbackCopy(text){ const ta=document.createElement('textarea'); ta.value=text; ta.style.cssText='position:fixed;opacity:0;top:0;left:0;'; document.body.appendChild(ta); ta.focus(); ta.select(); try{ document.execCommand('copy'); toast('Copiada!'); } catch(e){ toast('Use HTTPS para copiar.'); } document.body.removeChild(ta); }
+
+// ══ ACTIONS ══
+function cmd(c,d){ if(currentRole!=='admin'&&!['refresh'].includes(c)){ toast('Sem permissão'); return; } if(socket) socket.emit(c,d); }
+function connectSrv(){ const ip=document.getElementById('cIp').value.trim(); if(!ip)return; socket.emit('connect_server',ip); document.getElementById('cIp').value=''; toast('Conectando...'); }
+function connectSrv2(){ const ip=document.getElementById('cIp2').value.trim(); if(!ip)return; socket.emit('connect_server',ip); document.getElementById('cIp2').value=''; toast('Conectando...'); }
+function addMsg(){ const m=document.getElementById('newMsg').value.trim(); if(!m)return; socket.emit('addMsg',m); document.getElementById('newMsg').value=''; }
+function delMsg(i){ socket.emit('delMsg',i); }
+function setInt(){ const v=document.getElementById('intInp').value; if(v) socket.emit('setIntervalo',parseInt(v)); }
+function setUname(){ const v=document.getElementById('unameInp').value.trim(); if(v) socket.emit('setUsername',v); }
+function addBl(){ const v=document.getElementById('blInp').value.trim(); if(!v)return; socket.emit('addBlacklist',v); document.getElementById('blInp').value=''; }
+function dlChat(){ if(socket) socket.emit('downloadChat'); }
+
+// ══ HELPERS ══
+function esc(t){ if(!t)return''; return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function cleanMotd(m){ if(!m)return''; if(typeof m==='object'){ if(m.text!==undefined){ let r=cleanMotd(m.text); if(m.extra)r+=m.extra.map(e=>cleanMotd(e)).join(''); return r; } return m.translate||''; } return String(m).replace(/§[0-9a-fk-or]/gi,'').trim(); }
+function toast(m){ const c=document.getElementById('toastC'); const t=document.createElement('div'); t.className='toast'; t.textContent=m; c.appendChild(t); setTimeout(()=>t.remove(),4000); }
+function dlJSON(d,f){ const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download=f; document.body.appendChild(a); try{ a.click(); toast(f); } finally{ document.body.removeChild(a); URL.revokeObjectURL(u); } }
+
+// ══ KEYBOARD ══
+document.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!document.getElementById('loginOverlay').classList.contains('hidden')) doLogin(); });
+</script>
 </body>
 </html>
