@@ -172,7 +172,6 @@ select.inp{cursor:pointer;}
 
 /* ═══ DASHBOARD GRID ═══ */
 .dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-.dash-left,.dash-right{display:flex;flex-direction:column;gap:14px;min-width:0;}
 @media(max-width:900px){.dash-grid{grid-template-columns:1fr;}}
 
 /* ═══ BOT CARDS ═══ */
@@ -314,7 +313,21 @@ select.inp{cursor:pointer;}
 .role-badge.admin{background:var(--purple-dim);color:var(--purple);}
 .role-badge.viewer{background:var(--cyan-dim);color:var(--cyan);}
 .role-badge.client{background:rgba(251,191,36,0.1);color:var(--yellow);}
-.viewer-frame{width:100%;height:500px;border-radius:8px;border:1px solid var(--border);}
+.viewer-wrap{position:relative;width:100%;border-radius:8px;overflow:hidden;border:1px solid var(--border);}
+.viewer-frame{width:100%;height:520px;border:none;display:block;background:#000;}
+.viewer-overlay{position:absolute;top:0;right:0;width:280px;height:100%;display:flex;flex-direction:column;background:rgba(10,12,18,0.88);border-left:1px solid var(--border);backdrop-filter:blur(6px);z-index:10;}
+.viewer-overlay-h{padding:8px 10px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--cyan);border-bottom:1px solid var(--border);letter-spacing:.05em;flex-shrink:0;}
+.viewer-chat-msgs{flex:1;overflow-y:auto;padding:6px 8px;display:flex;flex-direction:column;gap:3px;}
+.viewer-chat-msgs::-webkit-scrollbar{width:3px;} .viewer-chat-msgs::-webkit-scrollbar-thumb{background:var(--border);}
+.vcm-entry{font-size:10px;line-height:1.4;padding:2px 0;border-bottom:1px solid rgba(255,255,255,0.04);}
+.vcm-entry .vcm-who{color:var(--cyan);font-family:'JetBrains Mono',monospace;margin-right:4px;}
+.vcm-entry .vcm-msg{color:var(--text);}
+.vcm-entry .vcm-ts{color:var(--text-muted);font-size:9px;margin-left:4px;}
+.viewer-chat-input{padding:6px 8px;border-top:1px solid var(--border);display:flex;gap:4px;flex-shrink:0;}
+.viewer-chat-input input{flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px 6px;font-size:10px;font-family:'JetBrains Mono',monospace;}
+.viewer-chat-input button{padding:4px 8px;font-size:10px;}
+.viewer-url-row{display:flex;gap:6px;margin-bottom:8px;}
+.viewer-url-row input{flex:1;}
 @media(max-width:768px){.dash-grid{grid-template-columns:1fr;} .stats-grid{grid-template-columns:repeat(2,1fr);}}
 </style>
 </head>
@@ -410,9 +423,9 @@ select.inp{cursor:pointer;}
     </div>
 
     <div class="sb-status">
-      <div class="pulse" id="sbBotDot" style="background:var(--text-muted);box-shadow:none;"></div>
+      <div class="pulse" id="botDot" style="background:var(--text-muted);box-shadow:none;"></div>
       <div class="sb-stxt">
-        <b id="sbBotText">Offline</b>
+        <b id="botText">Offline</b>
         <s id="sbBotSub">Aguardando...</s>
       </div>
     </div>
@@ -442,7 +455,7 @@ select.inp{cursor:pointer;}
 
     <div class="sb-foot">
       <div class="sb-user">
-        <div class="sb-avatar" id="sbAvatar">C</div>
+        <div class="sb-avatar">C</div>
         <div class="sb-user-info">
           <strong id="sbUser">—</strong>
           <span id="sbRole" class="role-badge">—</span>
@@ -599,8 +612,24 @@ select.inp{cursor:pointer;}
 
       <!-- VIEWER -->
       <div class="page" id="p-viewer">
-        <div class="inp-row"><select class="inp" id="viewerBotSelect" style="max-width:260px;" onchange="loadViewer()"><option value="">Selecione um bot</option></select><button class="btn primary" onclick="loadViewer()">Carregar</button></div>
-        <div class="panel"><div class="panel-h">Visão do Bot</div><div class="panel-b" id="viewerPanel"><div style="color:var(--text-muted);text-align:center;padding:40px;font-size:12px;">Selecione um bot com viewer ativo</div></div></div>
+        <div class="inp-row" style="flex-wrap:wrap;gap:6px;">
+          <select class="inp" id="viewerBotSelect" style="max-width:220px;" onchange="loadViewer()"><option value="">Selecione um bot</option></select>
+          <button class="btn primary" onclick="loadViewer()">Carregar</button>
+          <input class="inp" id="viewerCustomUrl" placeholder="URL PlayIt (ex: abc.playit.gg:12345)" style="flex:1;min-width:200px;" title="Se usar PlayIt, cole a URL pública aqui">
+          <button class="btn" onclick="loadViewerCustom()" title="Carregar URL personalizada do PlayIt">🌐 PlayIt</button>
+        </div>
+        <div class="panel">
+          <div class="panel-h" style="display:flex;align-items:center;justify-content:space-between;">
+            <span>Viewer 3D</span>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <label style="font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="viewerChatToggle" checked onchange="toggleViewerChat()"> Chat</label>
+              <span id="viewerStatus" style="font-size:10px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;">—</span>
+            </div>
+          </div>
+          <div class="panel-b np" id="viewerPanel">
+            <div style="color:var(--text-muted);text-align:center;padding:40px;font-size:12px;">Selecione um bot ou insira URL do PlayIt</div>
+          </div>
+        </div>
       </div>
 
       <!-- TERMINAL -->
@@ -700,7 +729,6 @@ function doLogin(){
         document.getElementById('loginOverlay').classList.add('hidden');
         document.getElementById('app').style.display='flex';
         document.getElementById('sbUser').textContent=currentUser;
-        document.getElementById('sbAvatar').textContent=currentUser[0].toUpperCase();
         const rl=r.role==='admin'?'Admin':r.role==='viewer'?'Viewer':'Client';
         const roleEl=document.getElementById('sbRole');
         roleEl.textContent=rl; roleEl.className='role-badge '+r.role;
@@ -742,9 +770,6 @@ function doLogout(){
   document.getElementById('botDot').className='tb-ldot status-dot offline';
   document.getElementById('botText').textContent='Offline';
   document.getElementById('botText').style.color='var(--text-muted)';
-  const sbDot=document.getElementById('sbBotDot'), sbTxt=document.getElementById('sbBotText');
-  if(sbDot){ sbDot.style.background='var(--text-muted)'; sbDot.style.boxShadow='none'; }
-  if(sbTxt){ sbTxt.textContent='Offline'; sbTxt.style.color='var(--text-muted)'; }
 }
 function applyPerms(){
   if(currentRole==='viewer'||currentRole==='client'){
@@ -771,9 +796,10 @@ function setupEvents(){
   if(_eventsSetup) return; _eventsSetup=true;
   socket.on('init',(d)=>{
     if(d.stats){ stats=d.stats; updateStats(); }
-    if(d.bots){ allBots=d.bots; renderBots(); updateBotSelectors(); }
+    if(d.bots){ allBots=d.bots; window._botsData={}; allBots.forEach(b=>{ if(b.server)window._botsData[b.server]=b; }); renderBots(); updateBotSelectors(); }
     if(d.logs){ allLogs=d.logs; renderLogs(); }
-    if(d.chatDatabase){ allChat=d.chatDatabase; renderChat(); updateChatFilters(); }
+    if(d.chatDatabase){ allChat=d.chatDatabase; renderChat(); updateChatFilters(); viewerChatMsgs=allChat.slice(-300); renderViewerChat(); }
+    else { socket.emit('getChatMessages'); } // fix: request chat if not in init
     if(d.servers){ allServers=d.servers; renderSrvs(); }
     if(d.topServerChat){ topServerChat=d.topServerChat; renderTSC(); }
   });
@@ -783,9 +809,6 @@ function setupEvents(){
     dot.className='tb-ldot status-dot '+(on?'online':'offline');
     txt.textContent=on?'Online':'Offline';
     txt.style.color=on?'var(--green)':'var(--text-muted)';
-    const sbDot=document.getElementById('sbBotDot'), sbTxt=document.getElementById('sbBotText');
-    if(sbDot){ sbDot.style.background=on?'var(--green)':'var(--text-muted)'; sbDot.style.boxShadow=on?'0 0 8px var(--green)':'none'; }
-    if(sbTxt){ sbTxt.textContent=on?'Online':'Offline'; sbTxt.style.color=on?'var(--green)':'var(--text-muted)'; }
     document.getElementById('setBot').textContent=on?'Online':'Offline';
     document.getElementById('sbBotSub').textContent=on?(allBots.filter(b=>b.conectado).length+' bots · '+allServers.filter(s=>s.status==='online').length+' servers'):'Aguardando...';
   });
@@ -802,8 +825,9 @@ function setupEvents(){
   socket.on('chatMessage',(m)=>{
     allChat.push(m); if(allChat.length>5000)allChat.shift();
     if(currentPage==='chat') appendChat(m);
+    onNewChatMsg(m);
   });
-  socket.on('chatMessages',(m)=>{ allChat=m||[]; renderChat(); });
+  socket.on('chatMessages',(m)=>{ allChat=m||[]; renderChat(); viewerChatMsgs=allChat.slice(-300); renderViewerChat(); });
   socket.on('log',(e)=>{ allLogs.push(e); if(allLogs.length>200)allLogs.shift(); appendLog(e); });
   socket.on('topServerChat',(d)=>{ topServerChat=d; renderTSC(); });
   socket.on('learningData',(d)=>{ learningData=d; renderLearn(); });
@@ -822,9 +846,6 @@ function setupEvents(){
     document.getElementById('botDot').className='tb-ldot status-dot offline';
     document.getElementById('botText').textContent='Desconectado';
     document.getElementById('botText').style.color='var(--text-muted)';
-    const sbDot=document.getElementById('sbBotDot'), sbTxt=document.getElementById('sbBotText');
-    if(sbDot){ sbDot.style.background='var(--text-muted)'; sbDot.style.boxShadow='none'; }
-    if(sbTxt){ sbTxt.textContent='Offline'; sbTxt.style.color='var(--text-muted)'; }
   });
   socket.on('reconnect',()=>{
     if(sessionToken) socket.emit('keepAlive',{sessionToken},(r)=>{ if(!r?.valid) doLogout(); else toast('Reconectado!'); });
@@ -1006,12 +1027,84 @@ function renderInventory(){
 }
 
 // ══ VIEWER ══
+let viewerChatMsgs=[];
+let viewerCurrentSrv=null;
+
+function buildViewerHtml(iframeSrc, label){
+  return `<div class="viewer-wrap" id="viewerWrap">
+    <iframe class="viewer-frame" id="viewerIframe" src="${esc(iframeSrc)}" allowfullscreen></iframe>
+    <div class="viewer-overlay" id="viewerChatOverlay">
+      <div class="viewer-overlay-h">💬 CHAT AO VIVO</div>
+      <div class="viewer-chat-msgs" id="viewerChatList"><div style="color:var(--text-muted);font-size:10px;padding:8px;">Aguardando mensagens...</div></div>
+      <div class="viewer-chat-input admin-only">
+        <input id="viewerSendMsg" placeholder="Mensagem..." onkeydown="if(event.key==='Enter')viewerSend()">
+        <button class="btn primary" onclick="viewerSend()">↵</button>
+      </div>
+    </div>
+  </div>
+  <div style="font-size:10px;color:var(--text-muted);margin-top:6px;font-family:'JetBrains Mono',monospace;">${esc(label)}</div>`;
+}
+
 function loadViewer(){
   const sel=document.getElementById('viewerBotSelect');
-  const port=sel.value,panel=document.getElementById('viewerPanel');
+  const port=sel.value, panel=document.getElementById('viewerPanel');
   if(!port){ panel.innerHTML='<div style="color:var(--text-muted);text-align:center;padding:40px;font-size:12px;">Selecione um bot</div>'; return; }
-  const viewerHost=window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1'?`http://${window.location.hostname}:${port}`:`${window.location.protocol}//${window.location.hostname}:${port}`;
-  panel.innerHTML=`<iframe class="viewer-frame" src="${esc(viewerHost)}" frameborder="0" allowfullscreen></iframe><div style="font-size:10px;color:var(--text-muted);margin-top:6px;">Porta: ${esc(port)}</div>`;
+  const host=window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1'?`http://${window.location.hostname}:${port}`:`${window.location.protocol}//${window.location.hostname}:${port}`;
+  viewerCurrentSrv=null;
+  // try to match server from bots
+  if(window._botsData){ for(const b of Object.values(window._botsData||{})){ if(b.viewerPort==port){ viewerCurrentSrv=b.server; break; } } }
+  panel.innerHTML=buildViewerHtml(host, `Porta ${port}${viewerCurrentSrv?' | '+viewerCurrentSrv:''}`);
+  document.getElementById('viewerStatus').textContent=`porta ${port}`;
+  renderViewerChat();
+  document.getElementById('viewerChatToggle').checked=true;
+}
+
+function loadViewerCustom(){
+  const url=document.getElementById('viewerCustomUrl').value.trim();
+  const panel=document.getElementById('viewerPanel');
+  if(!url){ alert('Cole a URL do PlayIt primeiro'); return; }
+  const full=url.startsWith('http')?url:`http://${url}`;
+  viewerCurrentSrv=null;
+  panel.innerHTML=buildViewerHtml(full, `PlayIt: ${url}`);
+  document.getElementById('viewerStatus').textContent=`playit`;
+  renderViewerChat();
+  document.getElementById('viewerChatToggle').checked=true;
+}
+
+function toggleViewerChat(){
+  const ov=document.getElementById('viewerChatOverlay');
+  const iframe=document.getElementById('viewerIframe');
+  if(!ov||!iframe) return;
+  const show=document.getElementById('viewerChatToggle').checked;
+  ov.style.display=show?'flex':'none';
+  iframe.style.width=show?'calc(100% - 280px)':'100%';
+}
+
+function renderViewerChat(){
+  const el=document.getElementById('viewerChatList');
+  if(!el) return;
+  const msgs=viewerChatMsgs.slice(-80);
+  if(!msgs.length){ el.innerHTML='<div style="color:var(--text-muted);font-size:10px;padding:8px;">Sem mensagens ainda</div>'; return; }
+  el.innerHTML=msgs.map(m=>{
+    const time=m.ts?new Date(m.ts).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'';
+    return `<div class="vcm-entry"><span class="vcm-who">${esc(m.username||'?')}</span><span class="vcm-msg">${esc(m.message||'')}</span><span class="vcm-ts">${time}</span></div>`;
+  }).join('');
+  el.scrollTop=el.scrollHeight;
+}
+
+function viewerSend(){
+  const inp=document.getElementById('viewerSendMsg');
+  if(!inp||!inp.value.trim()) return;
+  // send to all or specific server
+  socket.emit('sendChat',{server: viewerCurrentSrv||'all', message: inp.value.trim()});
+  inp.value='';
+}
+
+// Hook into global chat messages to feed viewer
+function onNewChatMsg(msg){
+  viewerChatMsgs.push(msg);
+  if(viewerChatMsgs.length>300) viewerChatMsgs.shift();
+  renderViewerChat();
 }
 
 // ══ IMPRESSIONS ══
@@ -1175,7 +1268,17 @@ function fallbackCopy(text){ const ta=document.createElement('textarea'); ta.val
 
 // ══ ACTIONS ══
 function cmd(c,d){ if(currentRole!=='admin'&&!['refresh'].includes(c)){ toast('Sem permissão'); return; } if(socket) socket.emit(c,d); }
-function connectSrv(){ const ip=document.getElementById('cIp').value.trim(); if(!ip)return; socket.emit('connect_server',ip); document.getElementById('cIp').value=''; toast('Conectando...'); }
+function connectSrv(){
+  // Try dashboard input first, else prompt
+  const inp=document.getElementById('cIp');
+  let ip=(inp&&inp.value.trim())||'';
+  if(!ip){ ip=window.prompt('IP:Porta do servidor (ex: mc.server.com:25565)',''); }
+  if(!ip||!ip.trim()) return;
+  ip=ip.trim();
+  socket.emit('connect_server',ip);
+  if(inp) inp.value='';
+  toast('Conectando a '+ip+'...');
+}
 function connectSrv2(){ const ip=document.getElementById('cIp2').value.trim(); if(!ip)return; socket.emit('connect_server',ip); document.getElementById('cIp2').value=''; toast('Conectando...'); }
 function addMsg(){ const m=document.getElementById('newMsg').value.trim(); if(!m)return; socket.emit('addMsg',m); document.getElementById('newMsg').value=''; }
 function delMsg(i){ socket.emit('delMsg',i); }
