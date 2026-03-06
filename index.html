@@ -27,92 +27,6 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-he
 body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.04) 2px,rgba(0,0,0,0.04) 4px);}
 body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(0,220,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,220,255,0.025) 1px,transparent 1px);background-size:44px 44px;}
 
-/* ═══ MINECRAFT COLOR CODES ═══ */
-.mc-0{color:#000000;} .mc-1{color:#0000aa;} .mc-2{color:#00aa00;} .mc-3{color:#00aaaa;}
-.mc-4{color:#aa0000;} .mc-5{color:#aa00aa;} .mc-6{color:#ffaa00;} .mc-7{color:#aaaaaa;}
-.mc-8{color:#555555;} .mc-9{color:#5555ff;} .mc-a{color:#55ff55;} .mc-b{color:#55ffff;}
-.mc-c{color:#ff5555;} .mc-d{color:#ff55ff;} .mc-e{color:#ffff55;} .mc-f{color:#ffffff;}
-.mc-k{animation:mcobf 0.8s steps(1) infinite;} @keyframes mcobf{0%,100%{opacity:1;}50%{opacity:0;}}
-.mc-l{font-weight:bold;} .mc-m{text-decoration:line-through;} .mc-n{text-decoration:underline;}
-.mc-o{font-style:italic;}
-.motd-html{font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.3;}
-
-/* ═══ MC INVENTORY GUI ═══ */
-.mc-inv-wrap{background:#c6c6c6;border:3px solid;border-color:#fff #555 #555 #fff;padding:7px;display:inline-flex;flex-direction:column;gap:0;min-width:352px;image-rendering:pixelated;}
-.mc-inv-title{font-family:'JetBrains Mono',monospace;font-size:12px;color:#404040;margin-bottom:4px;font-weight:600;}
-.mc-inv-section{display:flex;flex-direction:column;gap:1px;}
-.mc-inv-body{display:flex;gap:6px;margin-bottom:4px;}
-.mc-inv-left{display:flex;flex-direction:column;gap:2px;}
-.mc-inv-center{width:64px;height:88px;background:#8b8b8b;border:2px solid;border-color:#373737 #fff #fff #373737;flex-shrink:0;position:relative;overflow:hidden;}
-.mc-inv-center img,.mc-inv-center canvas{width:100%;height:100%;image-rendering:pixelated;}
-.mc-inv-crafting{display:flex;flex-direction:column;gap:2px;justify-content:center;}
-.mc-crafting-row{display:flex;gap:2px;}
-.mc-craft-arrow{display:flex;align-items:center;justify-content:center;color:#777;font-size:16px;padding:0 3px;}
-.mc-slot{width:32px;height:32px;background:#8b8b8b;border:2px solid;border-color:#373737 #fff #fff #373737;position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:filter 0.1s;flex-shrink:0;box-sizing:border-box;}
-.mc-slot:hover{filter:brightness(1.3);}
-.mc-slot.empty{background:#8b8b8b;}
-.mc-slot.armor-slot{background:#6f6f6f;}
-.mc-slot.hotbar{border-color:#2d2d2d #fff #fff #2d2d2d;}
-.mc-slot .slot-icon{font-size:17px;line-height:1;user-select:none;}
-.mc-slot .slot-count{position:absolute;bottom:1px;right:2px;font-size:9px;font-family:'JetBrains Mono',monospace;color:#fff;text-shadow:1px 1px 0 #000,-1px 0 0 #000,0 1px 0 #000;font-weight:bold;line-height:1;}
-.mc-slot .slot-tooltip{display:none;position:absolute;bottom:110%;left:50%;transform:translateX(-50%);background:rgba(16,0,16,0.95);border:1px solid #5a0c6f;color:#fff;font-family:'JetBrains Mono',monospace;font-size:10px;padding:4px 8px;white-space:nowrap;z-index:999;pointer-events:none;border-radius:0;}
-.mc-slot:hover .slot-tooltip{display:block;}
-.mc-inv-row{display:flex;gap:2px;}
-.mc-inv-spacer{height:4px;}
-.mc-hotbar-sep{height:3px;background:#373737;margin:4px 0 3px;}
-.mc-inv-name-tag{font-family:'JetBrains Mono',monospace;font-size:9px;color:#404040;text-align:center;margin-top:2px;}
-.mc-offhand{display:flex;gap:3px;margin-top:2px;}
-
-/* Itens por tipo (cores aproximadas) */
-.item-sword{color:#c0c0c0;} .item-pick{color:#7b6d59;} .item-axe{color:#7b6d59;}
-.item-shovel{color:#7b6d59;} .item-helmet{color:#c0c0c0;} .item-boots{color:#c0c0c0;}
-.item-food{color:#e17f2f;} .item-block{color:#8b6914;} .item-gem{color:#4ee;}
-.item-arrow{color:#9b7;} .item-potion{color:#7f4;}
-
-/* ═══ COMANDOS PAGE ═══ */
-.cmd-section{margin-bottom:16px;}
-.cmd-section-title{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);font-family:'JetBrains Mono',monospace;margin-bottom:8px;}
-.cmd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px;}
-.cmd-btn{padding:8px 10px;background:var(--bg-card2);border:1px solid var(--border);border-radius:6px;color:var(--text-dim);font-size:11px;font-family:'JetBrains Mono',monospace;cursor:pointer;transition:all .15s;text-align:left;display:flex;flex-direction:column;gap:2px;}
-.cmd-btn:hover{border-color:var(--cyan);color:var(--cyan);background:var(--cyan-dim);}
-.cmd-btn .cmd-icon{font-size:16px;}
-.cmd-btn .cmd-label{font-size:10px;font-weight:600;}
-.cmd-btn .cmd-desc{font-size:9px;color:var(--text-muted);font-style:italic;}
-.cmd-log{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px;max-height:160px;overflow-y:auto;font-family:'JetBrains Mono',monospace;font-size:10px;}
-.cmd-log-entry{padding:2px 0;border-bottom:1px solid rgba(255,255,255,0.04);}
-.cmd-log-entry .cle-time{color:var(--text-muted);}
-.cmd-log-entry .cle-bot{color:var(--cyan);}
-.cmd-log-entry .cle-cmd{color:var(--green);}
-.cmd-target{display:flex;align-items:center;gap:8px;padding:10px;background:var(--bg-card2);border:1px solid var(--border-glow);border-radius:8px;margin-bottom:12px;}
-.cmd-target label{font-size:11px;color:var(--text-dim);white-space:nowrap;}
-
-/* ═══ VIEWER (web client) ═══ */
-.viewer-wrap{position:relative;width:100%;border-radius:8px;overflow:hidden;border:1px solid var(--border);}
-.viewer-frame{width:100%;height:540px;border:none;display:block;background:#000;}
-.viewer-overlay{position:absolute;top:0;right:0;width:280px;height:100%;display:flex;flex-direction:column;background:rgba(10,12,18,0.88);border-left:1px solid var(--border);backdrop-filter:blur(6px);z-index:10;}
-.viewer-overlay-h{padding:8px 10px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--cyan);border-bottom:1px solid var(--border);letter-spacing:.05em;flex-shrink:0;}
-.viewer-chat-msgs{flex:1;overflow-y:auto;padding:6px 8px;display:flex;flex-direction:column;gap:3px;}
-.viewer-chat-msgs::-webkit-scrollbar{width:3px;} .viewer-chat-msgs::-webkit-scrollbar-thumb{background:var(--border);}
-.vcm-entry{font-size:10px;line-height:1.4;padding:2px 0;border-bottom:1px solid rgba(255,255,255,0.04);}
-.vcm-entry .vcm-who{color:var(--cyan);font-family:'JetBrains Mono',monospace;margin-right:4px;}
-.vcm-entry .vcm-msg{color:var(--text);}
-.vcm-entry .vcm-ts{color:var(--text-muted);font-size:9px;margin-left:4px;}
-.viewer-chat-input{padding:6px 8px;border-top:1px solid var(--border);display:flex;gap:4px;flex-shrink:0;}
-.viewer-chat-input input{flex:1;background:var(--surface,var(--bg));border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px 6px;font-size:10px;font-family:'JetBrains Mono',monospace;}
-.viewer-chat-input button{padding:4px 8px;font-size:10px;}
-.viewer-bot-list{display:flex;flex-direction:column;gap:6px;margin-top:8px;}
-.viewer-bot-card{background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color .15s;}
-.viewer-bot-card:hover{border-color:var(--cyan);}
-.viewer-bot-card.active{border-color:var(--cyan);background:var(--cyan-dim);}
-.vbc-motd{font-size:10px;color:var(--text-muted);}
-.vbc-link{font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--cyan);margin-top:2px;}
-.vbc-actions{margin-left:auto;display:flex;gap:4px;}
-
-/* ═══ COLOR PICKER WIDGET ═══ */
-.color-picker-wrap{display:flex;flex-wrap:wrap;gap:4px;padding:8px;background:var(--bg-card2);border:1px solid var(--border);border-radius:6px;margin-bottom:8px;}
-.color-picker-swatch{width:22px;height:22px;border-radius:3px;border:1px solid rgba(255,255,255,0.15);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:9px;font-family:'JetBrains Mono',monospace;font-weight:bold;transition:transform .1s;}
-.color-picker-swatch:hover{transform:scale(1.2);border-color:#fff;}
-
 /* ═══ LOGIN OVERLAY ═══ */
 .login-ov{position:fixed;inset:0;z-index:10000;background:var(--bg);display:flex;align-items:center;justify-content:center;transition:opacity 0.3s;}
 .login-ov.hidden{display:none;}
@@ -315,12 +229,46 @@ select.inp{cursor:pointer;}
 .player-role{font-size:9px;background:var(--purple-dim);color:var(--purple);padding:1px 5px;border-radius:3px;}
 .player-toxic{font-size:9px;background:var(--red-dim);color:var(--red);padding:1px 5px;border-radius:3px;}
 
-/* ═══ INVENTORY ═══ */
-.inv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:6px;}
-.inv-slot{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px;text-align:center;}
-.inv-slot.armor{border-color:var(--cyan);}
-.inv-name{font-size:10px;color:var(--text-dim);}
-.inv-count{font-size:11px;font-weight:700;color:var(--cyan);font-family:'JetBrains Mono',monospace;}
+/* ═══ MC INVENTORY GUI ═══ */
+.mc-inv-wrap{padding:10px 0;}
+.mc-inv-gui{background:#C6C6C6;padding:7px;border:2px solid;border-color:#FFF #555 #555 #FFF;display:inline-block;box-shadow:2px 2px 0 #000;max-width:100%;overflow-x:auto;}
+.mc-inv-title{color:#404040;font-size:11px;font-weight:700;margin-bottom:7px;font-family:'JetBrains Mono',monospace;letter-spacing:0.03em;}
+.mc-inv-upper{display:flex;gap:6px;margin-bottom:4px;align-items:flex-start;flex-wrap:wrap;}
+.mc-armor-col{display:flex;flex-direction:column;gap:2px;}
+.mc-player-box{width:58px;height:86px;background:#8B8B8B;border:2px solid;border-color:#373737 #FFF #FFF #373737;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.mc-player-box img{width:56px;image-rendering:pixelated;}
+.mc-crafting-area{display:flex;align-items:center;gap:5px;margin-left:4px;}
+.mc-2x2{display:grid;grid-template-columns:repeat(2,1fr);gap:2px;}
+.mc-arrow{color:#555;font-size:14px;font-weight:900;padding:0 2px;}
+.mc-slot{width:36px;height:36px;background:#8B8B8B;border:2px solid;border-color:#373737 #FFF #FFF #373737;display:flex;align-items:center;justify-content:center;position:relative;cursor:default;flex-shrink:0;transition:background 0.1s;}
+.mc-slot:hover{background:#9F9F9F;}
+.mc-slot img{width:32px;height:32px;image-rendering:pixelated;display:block;}
+.mc-slot .mc-count{position:absolute;bottom:0;right:1px;font-size:10px;font-weight:700;color:#FFF;text-shadow:1px 1px 0 #3F3F3F,-1px 0 0 #3F3F3F;font-family:'JetBrains Mono',monospace;line-height:1;pointer-events:none;z-index:1;}
+.mc-slot-out{background:#6B6B6B;border-color:#FFF #373737 #373737 #FFF;}
+.mc-inv-main{display:grid;grid-template-columns:repeat(9,38px);gap:2px;margin-top:4px;}
+.mc-inv-sep{height:5px;}
+.mc-inv-hotbar{display:grid;grid-template-columns:repeat(9,38px);gap:2px;margin-top:6px;padding-top:4px;border-top:2px solid #555;}
+.mc-hotbar-lbl{font-size:9px;color:#555;font-family:'JetBrains Mono',monospace;margin-top:3px;text-align:center;letter-spacing:0.05em;}
+.mc-offhand-row{display:flex;align-items:center;gap:6px;margin-top:5px;}
+.mc-offhand-lbl{font-size:9px;color:#555;font-family:'JetBrains Mono',monospace;}
+.mc-inv-empty{padding:24px;text-align:center;color:var(--text-muted);font-size:12px;}
+.mc-selector-bar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+.mc-stats-bar{display:flex;gap:14px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--text-dim);}
+.mc-stats-bar span{display:flex;align-items:center;gap:4px;}
+/* ═══ PLUGINS PAGE ═══ */
+.plugin-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.plugin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;}
+.plugin-card{background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;padding:13px 14px;display:flex;gap:12px;transition:border-color 0.2s;align-items:flex-start;}
+.plugin-card:hover{border-color:var(--border-glow);}
+.plugin-card.enabled{border-color:rgba(34,211,165,0.4);}
+.plugin-info{flex:1;min-width:0;}
+.plugin-id{font-family:'JetBrains Mono',monospace;font-size:10px;background:var(--bg);border:1px solid var(--border);padding:2px 7px;border-radius:3px;color:var(--cyan);display:inline-block;margin-bottom:5px;}
+.plugin-desc{font-size:11px;color:var(--text-dim);line-height:1.45;}
+.plugin-tog{flex-shrink:0;width:36px;height:20px;border-radius:10px;background:var(--text-muted);border:none;cursor:pointer;position:relative;transition:background 0.2s;outline:none;margin-top:2px;}
+.plugin-tog.on{background:var(--green);}
+.plugin-tog::after{content:'';position:absolute;width:14px;height:14px;background:#fff;border-radius:50%;top:3px;left:3px;transition:transform 0.18s;}
+.plugin-tog.on::after{transform:translateX(16px);}
+.plugin-tog:disabled{opacity:0.4;cursor:not-allowed;}
 
 /* ═══ LEARNING ═══ */
 .word-cloud{display:flex;flex-wrap:wrap;gap:6px;}
@@ -399,21 +347,7 @@ select.inp{cursor:pointer;}
 .role-badge.admin{background:var(--purple-dim);color:var(--purple);}
 .role-badge.viewer{background:var(--cyan-dim);color:var(--cyan);}
 .role-badge.client{background:rgba(251,191,36,0.1);color:var(--yellow);}
-.viewer-wrap{position:relative;width:100%;border-radius:8px;overflow:hidden;border:1px solid var(--border);}
-.viewer-frame{width:100%;height:520px;border:none;display:block;background:#000;}
-.viewer-overlay{position:absolute;top:0;right:0;width:280px;height:100%;display:flex;flex-direction:column;background:rgba(10,12,18,0.88);border-left:1px solid var(--border);backdrop-filter:blur(6px);z-index:10;}
-.viewer-overlay-h{padding:8px 10px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--cyan);border-bottom:1px solid var(--border);letter-spacing:.05em;flex-shrink:0;}
-.viewer-chat-msgs{flex:1;overflow-y:auto;padding:6px 8px;display:flex;flex-direction:column;gap:3px;}
-.viewer-chat-msgs::-webkit-scrollbar{width:3px;} .viewer-chat-msgs::-webkit-scrollbar-thumb{background:var(--border);}
-.vcm-entry{font-size:10px;line-height:1.4;padding:2px 0;border-bottom:1px solid rgba(255,255,255,0.04);}
-.vcm-entry .vcm-who{color:var(--cyan);font-family:'JetBrains Mono',monospace;margin-right:4px;}
-.vcm-entry .vcm-msg{color:var(--text);}
-.vcm-entry .vcm-ts{color:var(--text-muted);font-size:9px;margin-left:4px;}
-.viewer-chat-input{padding:6px 8px;border-top:1px solid var(--border);display:flex;gap:4px;flex-shrink:0;}
-.viewer-chat-input input{flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:4px 6px;font-size:10px;font-family:'JetBrains Mono',monospace;}
-.viewer-chat-input button{padding:4px 8px;font-size:10px;}
-.viewer-url-row{display:flex;gap:6px;margin-bottom:8px;}
-.viewer-url-row input{flex:1;}
+.viewer-frame{width:100%;height:500px;border-radius:8px;border:1px solid var(--border);}
 @media(max-width:768px){.dash-grid{grid-template-columns:1fr;} .stats-grid{grid-template-columns:repeat(2,1fr);}}
 </style>
 </head>
@@ -450,15 +384,15 @@ select.inp{cursor:pointer;}
       </div>
       <div class="login-brand">
         <div class="b1">SØLV3R</div>
-        <div class="b2">MC · MD</div>
+        <div class="b2">v9.0 · Bot Anunciador</div>
       </div>
     </div>
     <div class="login-field">
       <label>Usuário</label>
-      <input class="login-inp" type="text" id="loginUser" placeholder="••••••••" autocomplete="username">
+      <input class="login-inp" type="text" id="loginUser" placeholder="seu_usuario" autocomplete="username">
     </div>
     <div class="login-field">
-      <label>Senha</label>
+      <label>Senha / API Key</label>
       <input class="login-inp" type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password">
     </div>
     <div class="login-err" id="loginError"></div>
@@ -528,11 +462,12 @@ select.inp{cursor:pointer;}
       <div class="nav-item" data-page="players" data-tip="Players" onclick="nav('players')"><i><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></i><span class="label">Players</span></div>
       <div class="nav-item" data-page="inventory" data-tip="Inventário" onclick="nav('inventory')"><i><svg viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></i><span class="label">Inventário</span></div>
       <div class="nav-item" data-page="messages" data-tip="Mensagens" onclick="nav('messages')"><i><svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z"/></svg></i><span class="label">Mensagens</span></div>
+      <div class="nav-item admin-only" data-page="security" data-tip="Segurança" onclick="nav('security')"><i><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></i><span class="label">Segurança</span></div>
+      <div class="nav-item" data-page="plugins" data-tip="Plugins" onclick="nav('plugins')"><i><svg viewBox="0 0 24 24"><path d="M12 2l9 4.9V17L12 22 3 17V6.9L12 2z"/><path d="M12 22V12M3 6.9l9 5.1 9-5.1"/></svg></i><span class="label">Plugins</span></div>
       <div class="nav-item" data-page="blacklist" data-tip="Blacklist" onclick="nav('blacklist')"><i><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></i><span class="label">Blacklist</span><span class="badge" id="blCount">0</span></div>
       <div class="nav-sec">Análise</div>
       <div class="nav-item" data-page="analytics" data-tip="Analytics" onclick="nav('analytics')"><i><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></i><span class="label">Analytics</span></div>
-      <div class="nav-item" data-page="comandos" data-tip="Comandos" onclick="nav('comandos')"><i><svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></i><span class="label">Comandos</span></div>
-      <div class="nav-item" data-page="viewer" data-tip="Viewer 3D" onclick="nav('viewer')"><i><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></i><span class="label">Viewer</span></div>
+      <div class="nav-item" data-page="viewer" data-tip="Viewer 3D" onclick="nav('viewer')"><i><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></i><span class="label">Viewer 3D</span></div>
       <div class="nav-item" data-page="terminal" data-tip="Terminal" onclick="nav('terminal')"><i><svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></i><span class="label">Terminal</span></div>
       <div class="nav-item" data-page="logs" data-tip="Logs" onclick="nav('logs')"><i><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></i><span class="label">Logs</span></div>
       <div class="nav-sec admin-only">Admin</div>
@@ -619,7 +554,6 @@ select.inp{cursor:pointer;}
           <div class="chat-input">
             <select class="inp admin-only" id="chatSendSrv" style="max-width:180px;"><option value="all">Todos</option></select>
             <input class="inp admin-only" id="chatSendMsg" placeholder="Mensagem..." style="flex:1;" onkeydown="if(event.key==='Enter')sendChat()">
-            <button class="btn admin-only" onclick="showColorPicker('chatSendMsg')" title="Inserir §cores do Minecraft">§</button>
             <button class="btn primary admin-only" onclick="sendChat()">Enviar</button>
             <input class="inp admin-only" id="chatSendCmd" placeholder="/cmd" style="max-width:150px;" onkeydown="if(event.key==='Enter')sendCmd()">
             <button class="btn admin-only" onclick="sendCmd()">Cmd</button>
@@ -662,29 +596,18 @@ select.inp{cursor:pointer;}
       </div>
 
       <!-- INVENTORY -->
-      <!-- INVENTORY - MC GUI -->
       <div class="page" id="p-inventory">
-        <div class="inp-row" style="margin-bottom:12px;">
-          <select class="inp" id="invBotSelect" style="max-width:320px;" onchange="renderInventory()"><option value="">Selecione um bot...</option></select>
-          <button class="btn sm" onclick="renderInventory()">🔄 Atualizar</button>
-          <span id="invBotStatus" style="font-size:11px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;"></span>
-        </div>
-        <div class="panel">
-          <div class="panel-h" style="display:flex;align-items:center;gap:8px;">
-            <span>Inventário</span>
-            <span id="invSlotInfo" style="font-size:10px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;"></span>
-          </div>
-          <div class="panel-b" style="overflow-x:auto;display:flex;justify-content:center;">
-            <div id="mcInvContainer" style="padding:8px;">
-              <div style="color:var(--text-muted);text-align:center;padding:40px;font-size:12px;">Selecione um bot para ver o inventário</div>
-            </div>
+        <div class="mc-selector-bar">
+          <select class="inp" id="invBotSelect" style="max-width:260px;" onchange="renderInventory()"><option value="">Selecione um bot</option></select>
+          <button class="btn sm" onclick="refreshInv()">Atualizar</button>
+          <div class="mc-stats-bar">
+            <span id="invHpBar">❤ —</span>
+            <span id="invFoodBar">🍖 —</span>
+            <span id="invTpsBar">TPS: —</span>
           </div>
         </div>
-        <div class="panel" style="margin-top:8px;">
-          <div class="panel-h">Armadura Equipada</div>
-          <div class="panel-b" id="invArmorDetail">
-            <div style="color:var(--text-muted);font-size:12px;">Sem armadura equipada</div>
-          </div>
+        <div id="invContainer">
+          <div class="mc-inv-empty">Selecione um bot para ver o inventário</div>
         </div>
       </div>
 
@@ -700,6 +623,34 @@ select.inp{cursor:pointer;}
           <div class="inp-row"><label style="font-size:12px;min-width:90px;">Username:</label><input class="inp admin-only" id="unameInp" style="max-width:180px;"><button class="btn primary admin-only" onclick="setUname()">Salvar</button></div>
         </div></div>
         <div class="panel"><div class="panel-h">Impressões</div><div class="panel-b" id="impressionsPanel"><div style="color:var(--text-muted);font-size:12px;">Carregando...</div></div></div>
+      </div>
+
+      <!-- SECURITY -->
+      <div class="page" id="p-security">
+        <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+          <button class="btn sm" onclick="loadSecurity()">Atualizar</button>
+          <a class="btn sm" href="/user-info" target="_blank" style="text-decoration:none;">Ver JSON bruto</a>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-bottom:16px;" id="secInfoGrid">
+          <div style="color:var(--text-muted);font-size:12px;">Carregando...</div>
+        </div>
+        <div class="panel">
+          <div class="panel-h">Log de Acessos</div>
+          <div class="panel-b" id="secLoginLog" style="max-height:400px;overflow-y:auto;">
+            <div style="color:var(--text-muted);font-size:12px;">Carregando...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PLUGINS -->
+      <div class="page" id="p-plugins">
+        <div class="plugin-toolbar">
+          <span style="font-size:11px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;">Funcionalidades do bot — alterações via socket setBotConfig</span>
+          <button class="btn sm" onclick="refreshPlugins()">Atualizar</button>
+        </div>
+        <div class="plugin-grid" id="pluginGrid">
+          <div style="padding:20px;color:var(--text-muted);font-size:12px;">Aguardando dados do bot...</div>
+        </div>
       </div>
 
       <!-- BLACKLIST -->
@@ -718,90 +669,10 @@ select.inp{cursor:pointer;}
         <div class="panel"><div class="panel-h">Top Servidores</div><div class="panel-b np" id="anTopSrv"></div></div>
       </div>
 
-      <!-- VIEWER - prismarine-web-client + Radmin -->
+      <!-- VIEWER -->
       <div class="page" id="p-viewer">
-        <div class="panel">
-          <div class="panel-h" style="display:flex;align-items:center;justify-content:space-between;">
-            <span>Bots com Viewer</span>
-            <div style="display:flex;gap:6px;align-items:center;">
-              <label style="font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="viewerChatToggle" checked onchange="toggleViewerChat()"> Chat</label>
-              <span id="viewerStatus" style="font-size:10px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;">—</span>
-            </div>
-          </div>
-          <div class="panel-b np" id="viewerBotListPanel">
-            <div style="color:var(--text-muted);text-align:center;padding:24px;font-size:12px;">Aguardando bots com viewer...</div>
-          </div>
-        </div>
-        <div class="panel" style="margin-top:8px;">
-          <div class="panel-h">Visualizador 3D</div>
-          <div class="panel-b np" id="viewerPanel">
-            <div style="color:var(--text-muted);text-align:center;padding:40px;font-size:12px;">Clique em um bot acima para abrir o viewer</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- COMANDOS -->
-      <div class="page" id="p-comandos">
-        <div class="cmd-target">
-          <label>Alvo:</label>
-          <select class="inp" id="cmdTargetSelect" style="max-width:280px;"><option value="all">🌐 Todos os Bots</option></select>
-          <button class="btn sm primary" onclick="refreshCmdBotList()">🔄</button>
-          <span id="cmdTargetInfo" style="font-size:10px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;margin-left:auto;"></span>
-        </div>
-
-        <div class="cmd-section">
-          <div class="cmd-section-title">⛏️ Mineração</div>
-          <div class="cmd-grid">
-            <div class="cmd-btn" onclick="sendBotCmd('!minerar ferro')"><div class="cmd-icon">🪨</div><div class="cmd-label">Minerar Ferro</div><div class="cmd-desc">!minerar ferro</div></div>
-            <div class="cmd-btn" onclick="sendBotCmd('!minerar carvao')"><div class="cmd-icon">⚫</div><div class="cmd-label">Minerar Carvão</div><div class="cmd-desc">!minerar carvao</div></div>
-            <div class="cmd-btn" onclick="sendBotCmd('!minerar ouro')"><div class="cmd-icon">🟡</div><div class="cmd-label">Minerar Ouro</div><div class="cmd-desc">!minerar ouro</div></div>
-            <div class="cmd-btn" onclick="sendBotCmd('!minerar diamante')"><div class="cmd-icon">💎</div><div class="cmd-label">Minerar Diamante</div><div class="cmd-desc">!minerar diamante</div></div>
-            <div class="cmd-btn" onclick="sendBotCmd('!minerar redstone')"><div class="cmd-icon">🔴</div><div class="cmd-label">Minerar Redstone</div><div class="cmd-desc">!minerar redstone</div></div>
-            <div class="cmd-btn" onclick="sendBotCmd('!minerar lapis')"><div class="cmd-icon">🔵</div><div class="cmd-label">Minerar Lapis</div><div class="cmd-desc">!minerar lapis</div></div>
-          </div>
-        </div>
-
-        <div class="cmd-section">
-          <div class="cmd-section-title">🚶 Movimento</div>
-          <div class="cmd-grid">
-            <div class="cmd-btn" onclick="promptBotCmd('!seguir ','Nome do jogador para seguir:')"><div class="cmd-icon">👣</div><div class="cmd-label">Seguir Player</div><div class="cmd-desc">!seguir [jogador]</div></div>
-            <div class="cmd-btn" onclick="sendBotCmd('!parar')"><div class="cmd-icon">🛑</div><div class="cmd-label">Parar</div><div class="cmd-desc">!parar movimento</div></div>
-            <div class="cmd-btn" onclick="sendBotCmd('!afk')"><div class="cmd-icon">💤</div><div class="cmd-label">Modo AFK</div><div class="cmd-desc">!afk movimento</div></div>
-            <div class="cmd-btn" onclick="sendBotCmd('!pular')"><div class="cmd-icon">🐇</div><div class="cmd-label">Pular</div><div class="cmd-desc">!pular</div></div>
-            <div class="cmd-btn" onclick="promptBotCmd('!ir ','Coordenadas (x z):')"><div class="cmd-icon">📍</div><div class="cmd-label">Ir para XZ</div><div class="cmd-desc">!ir [x] [z]</div></div>
-            <div class="cmd-btn" onclick="sendBotCmd('!spawn')"><div class="cmd-icon">🏠</div><div class="cmd-label">Voltar Spawn</div><div class="cmd-desc">!spawn</div></div>
-          </div>
-        </div>
-
-        <div class="cmd-section">
-          <div class="cmd-section-title">🎮 Ações</div>
-          <div class="cmd-grid">
-            <div class="cmd-btn" onclick="sendBotCmd('!anunciar')"><div class="cmd-icon">📢</div><div class="cmd-label">Anunciar Agora</div><div class="cmd-desc">forçar anúncio</div></div>
-            <div class="cmd-btn" onclick="sendBotCmd('!inventario')"><div class="cmd-icon">🎒</div><div class="cmd-label">Ver Inventário</div><div class="cmd-desc">!inventario</div></div>
-            <div class="cmd-btn" onclick="sendBotCmd('!comer')"><div class="cmd-icon">🍖</div><div class="cmd-label">Comer</div><div class="cmd-desc">!comer comida</div></div>
-            <div class="cmd-btn" onclick="sendBotCmd('!desconectar')"><div class="cmd-icon">🔌</div><div class="cmd-label">Desconectar</div><div class="cmd-desc">!desconectar servidor</div></div>
-            <div class="cmd-btn" onclick="sendBotCmd('!status')"><div class="cmd-icon">📊</div><div class="cmd-label">Status Bot</div><div class="cmd-desc">!status info</div></div>
-            <div class="cmd-btn" onclick="promptBotCmd('/','Comando Minecraft (sem /):')"><div class="cmd-icon">⌨️</div><div class="cmd-label">Cmd Minecraft</div><div class="cmd-desc">/comando direto</div></div>
-          </div>
-        </div>
-
-        <div class="cmd-section">
-          <div class="cmd-section-title">✏️ Comando Personalizado</div>
-          <div style="display:flex;gap:8px;align-items:center;">
-            <input class="inp" id="customCmdInput" placeholder="!minerar carvao | /spawn | mensagem..." style="flex:1;" onkeydown="if(event.key==='Enter')sendCustomCmd()">
-            <button class="btn primary" onclick="sendCustomCmd()">Enviar</button>
-            <label style="font-size:11px;color:var(--text-muted);white-space:nowrap;">
-              <input type="checkbox" id="cmdAsChat"> Modo chat
-            </label>
-          </div>
-        </div>
-
-        <div class="cmd-section">
-          <div class="cmd-section-title">📋 Log de Comandos</div>
-          <div class="cmd-log" id="cmdLog">
-            <div class="cmd-log-entry" style="color:var(--text-muted);">Nenhum comando enviado ainda.</div>
-          </div>
-        </div>
+        <div class="inp-row"><select class="inp" id="viewerBotSelect" style="max-width:260px;" onchange="loadViewer()"><option value="">Selecione um bot</option></select><button class="btn primary" onclick="loadViewer()">Carregar</button></div>
+        <div class="panel"><div class="panel-h">Visão do Bot</div><div class="panel-b" id="viewerPanel"><div style="color:var(--text-muted);text-align:center;padding:40px;font-size:12px;">Selecione um bot com viewer ativo</div></div></div>
       </div>
 
       <!-- TERMINAL -->
@@ -857,6 +728,7 @@ select.inp{cursor:pointer;}
 <script>
 let socket=null,currentUser=null,currentRole=null,currentPage='dashboard',botOnline=false;
 let allBots=[],allServers=[],allChat=[],allLogs=[],stats={},analyticsData={},learningData={},topServerChat={},sessionToken=null;
+let seenChatIds=new Set();
 let inventoryData={},isMobile=window.innerWidth<=768;
 const RELAY=window.location.origin;
 
@@ -968,10 +840,19 @@ function setupEvents(){
   if(_eventsSetup) return; _eventsSetup=true;
   socket.on('init',(d)=>{
     if(d.stats){ stats=d.stats; updateStats(); }
-    if(d.bots){ allBots=d.bots; window._botsData={}; allBots.forEach(b=>{ if(b.server)window._botsData[b.server]=b; }); renderBots(); updateBotSelectors(); }
+    if(d.bots){ allBots=d.bots; renderBots(); updateBotSelectors(); }
     if(d.logs){ allLogs=d.logs; renderLogs(); }
-    if(d.chatDatabase){ allChat=d.chatDatabase; renderChat(); updateChatFilters(); viewerChatMsgs=allChat.slice(-300); renderViewerChat(); }
-    else { socket.emit('getChatMessages'); } // fix: request chat if not in init
+    if(d.chatDatabase){
+      // Merge com dedup em vez de substituir — evita duplicatas pós-reconexão
+      const seenBefore = new Set(allChat.map(m=>m.id||`${m.timestamp}-${m.username}-${m.serverKey}`));
+      const newMsgs = d.chatDatabase.filter(m => {
+        const id = m.id||`${m.timestamp}-${m.username}-${m.serverKey}`;
+        return !seenBefore.has(id);
+      });
+      allChat = [...allChat, ...newMsgs].sort((a,b)=>(a.timestamp||0)-(b.timestamp||0)).slice(-5000);
+      seenChatIds = new Set(allChat.map(m=>m.id||`${m.timestamp}-${m.username}-${m.serverKey}`));
+      renderChat(); updateChatFilters();
+    }
     if(d.servers){ allServers=d.servers; renderSrvs(); }
     if(d.topServerChat){ topServerChat=d.topServerChat; renderTSC(); }
   });
@@ -995,11 +876,14 @@ function setupEvents(){
     renderSrvs(); updateChatFilters();
   });
   socket.on('chatMessage',(m)=>{
+    const id = m.id||`${m.timestamp}-${m.username}-${m.serverKey}`;
+    if(seenChatIds.has(id)) return; // dedup client-side
+    seenChatIds.add(id);
+    if(seenChatIds.size>6000){ const arr=[...seenChatIds]; seenChatIds=new Set(arr.slice(-5000)); }
     allChat.push(m); if(allChat.length>5000)allChat.shift();
     if(currentPage==='chat') appendChat(m);
-    onNewChatMsg(m);
   });
-  socket.on('chatMessages',(m)=>{ allChat=m||[]; renderChat(); viewerChatMsgs=allChat.slice(-300); renderViewerChat(); });
+  socket.on('chatMessages',(m)=>{ allChat=m||[]; renderChat(); });
   socket.on('log',(e)=>{ allLogs.push(e); if(allLogs.length>200)allLogs.shift(); appendLog(e); });
   socket.on('topServerChat',(d)=>{ topServerChat=d; renderTSC(); });
   socket.on('learningData',(d)=>{ learningData=d; renderLearn(); });
@@ -1031,7 +915,7 @@ function nav(p){
   document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
   document.getElementById('p-'+p)?.classList.add('active');
   document.querySelector(`.nav-item[data-page="${p}"]`)?.classList.add('active');
-  const t={dashboard:'Dashboard',bots:'Bots',chat:'Chat',learning:'Aprendizado',servers:'Servidores',players:'Players',inventory:'Inventário',messages:'Mensagens',blacklist:'Blacklist',analytics:'Analytics',viewer:'Viewer 3D',terminal:'Terminal',logs:'Logs',keys:'Keys/Ads',settings:'Config',comandos:'Comandos'};
+  const t={dashboard:'Dashboard',bots:'Bots',chat:'Chat',learning:'Aprendizado',servers:'Servidores',players:'Players',inventory:'Inventário',messages:'Mensagens',plugins:'Plugins',security:'Segurança',blacklist:'Blacklist',analytics:'Analytics',viewer:'Viewer 3D',terminal:'Terminal',logs:'Logs',keys:'Keys/Ads',settings:'Config'};
   document.getElementById('pageTitle').textContent=t[p]||p;
   if(p==='analytics') loadAn('24h');
   if(p==='learning') reqLearn();
@@ -1040,9 +924,10 @@ function nav(p){
   if(p==='keys') loadKeys();
   if(p==='players'&&socket?.connected) searchPlayers();
   if(p==='messages'&&socket?.connected) socket.emit('getImpressions');
-  if(p==='inventory') updateBotSelectors();
-  if(p==='viewer') renderViewerBotList();
-  if(p==='comandos') refreshCmdBotList();
+  if(p==='inventory') { updateBotSelectors(); renderInventory(); }
+  if(p==='plugins') refreshPlugins();
+  if(p==='security') loadSecurity();
+  if(p==='viewer') updateBotSelectors();
   if(isMobile) closeSidebar();
 }
 
@@ -1073,9 +958,7 @@ function renderBots(){
     const pt=b.protocolType&&b.protocolType!=='vanilla'?` [${b.protocolType}]`:'';
     const tps=b.tps?` TPS:${b.tps}`:'';
     const bkey=esc(b.key);
-    const motdHtml=b.motdRaw||b.motd?parseMotd(b.motdRaw||b.motd):'';
-    const radminBadge=b.radminIp?`<span style="font-size:9px;color:var(--purple);font-family:'JetBrains Mono',monospace;"> [Radmin: ${esc(b.radminIp)}]</span>`:'';
-    return`<div class="bot-card"><div class="bot-dot on"></div><div class="bot-info"><div class="bot-name">${esc(b.username||'?')}${pt}${radminBadge}</div><div class="bot-srv">${bkey} (v${b.versao||'?'})${tps}</div>${motdHtml?`<div class="bot-motd motd-html">${motdHtml}</div>`:''}</div><div class="bot-mini">${b.hp!=null?`<span>HP:${Math.round(b.hp)}</span>`:''} ${b.food!=null?`<span>Food:${Math.round(b.food)}</span>`:''} ${b.players?`<span>Pl:${b.players.length}</span>`:''}</div><div class="bot-actions">${isA?`<button class="btn sm" data-action="jump" data-key="${bkey}">Pular</button><button class="btn sm danger" data-action="disconnect" data-key="${bkey}">Off</button>`:''}</div></div>`;
+    return`<div class="bot-card"><div class="bot-dot on"></div><div class="bot-info"><div class="bot-name">${esc(b.username||'?')}${pt}</div><div class="bot-srv">${bkey} (v${b.versao||'?'})${tps}</div>${b.motd?`<div class="bot-motd">${esc(b.motd)}</div>`:''}</div><div class="bot-mini">${b.hp!=null?`<span>HP:${Math.round(b.hp)}</span>`:''} ${b.food!=null?`<span>Food:${Math.round(b.food)}</span>`:''} ${b.players?`<span>Pl:${b.players.length}</span>`:''}</div><div class="bot-actions">${isA?`<button class="btn sm" data-action="jump" data-key="${bkey}">Pular</button><button class="btn sm danger" data-action="disconnect" data-key="${bkey}">Off</button>`:''}</div></div>`;
   };
   bp.innerHTML=bl.slice(0,5).map(rc).join('');
   fp.innerHTML=bl.map(rc).join('');
@@ -1084,18 +967,10 @@ function renderBots(){
 function updateBotSelectors(){
   const bl=allBots.filter(b=>b.conectado);
   const invSel=document.getElementById('invBotSelect');
-  if(invSel){
-    const cv=invSel.value;
-    invSel.innerHTML='<option value="">Selecione um bot...</option>'+bl.map(b=>{
-      const motdClean=cleanMotd(b.motdRaw||b.motd||'');
-      const label=motdClean?`${esc(b.username||'?')} @ ${esc(b.key)} — ${motdClean}`:` ${esc(b.username||'?')} @ ${esc(b.key)}`;
-      return `<option value="${esc(b.key)}">${label}</option>`;
-    }).join('');
-    if(cv)invSel.value=cv;
-  }
+  if(invSel){ const cv=invSel.value; invSel.innerHTML='<option value="">Selecione um bot</option>'+bl.map(b=>`<option value="${esc(b.key)}">${esc(b.key)} (${esc(b.username||'?')})</option>`).join(''); if(cv)invSel.value=cv; }
+  const vSel=document.getElementById('viewerBotSelect');
+  if(vSel){ const cv=vSel.value; const withViewer=bl.filter(b=>b.viewerPort); vSel.innerHTML='<option value="">Selecione um bot</option>'+withViewer.map(b=>`<option value="${b.viewerPort}">${esc(b.key)} (porta ${b.viewerPort})</option>`).join(''); if(cv)vSel.value=cv; }
   updateChatFilters();
-  renderViewerBotList();
-  refreshCmdBotList();
 }
 
 // ══ CHAT ══
@@ -1116,11 +991,11 @@ function appendChat(m){
 function fmtChat(m){
   const men=m.botMentioned,isBot=m.isBotMessage;
   const srv=allServers.find(s=>s.key===m.serverKey);
-  const motdHtml=m.motdRaw||m.motd||(srv&&(srv.motdRaw||srv.motd))?`<span class="motd-html" style="font-size:9px;opacity:.7;"> ${parseMotd(m.motdRaw||m.motd||(srv?srv.motdRaw||srv.motd:''))}</span>`:'';
+  const motd=m.motd||(srv?cleanMotd(srv.motd):'');
   const sentDot=m.sentiment==='positive'?'<span class="sentiment-dot positive"></span>':m.sentiment==='negative'?'<span class="sentiment-dot negative"></span>':'';
   const userClass=isBot?'cu bot-user':'cu';
   const srvKey=esc(m.serverKey);
-  return`<div class="chat-msg${men?' mentioned':''}">${sentDot}<span class="ct">${m.time||''}</span> <span class="cs" data-srv="${srvKey}">[${srvKey}${motdHtml}]</span> <span class="${userClass}">${esc(m.username||'?')}</span>: <span class="cx">${esc(m.message||'')}</span></div>`;
+  return`<div class="chat-msg${men?' mentioned':''}">${sentDot}<span class="ct">${m.time||''}</span> <span class="cs" data-srv="${srvKey}">[${srvKey}${motd?` — ${esc(motd)}`:''}]</span> <span class="${userClass}">${esc(m.username||'?')}</span>: <span class="cx">${esc(m.message||'')}</span></div>`;
 }
 document.addEventListener('click',e=>{ const el=e.target.closest('.cs[data-srv]'); if(el) filterBySrv(el.dataset.srv); });
 function filterBySrv(k){ document.getElementById('chatFilter').value=k; filterChat(); }
@@ -1170,7 +1045,7 @@ function renderSrvs(){
   srvs.sort((a,b)=>{ if(a.status==='online'&&b.status!=='online')return-1; if(b.status==='online'&&a.status!=='online')return 1; return(b.players?.length||0)-(a.players?.length||0); });
   if(!srvs.length){ p.innerHTML='<div style="padding:24px;text-align:center;color:var(--text-muted);">Nenhum servidor</div>'; return; }
   p.innerHTML=srvs.map(s=>{
-    const motdHtml=(s.motdRaw||s.motd)?parseMotd(s.motdRaw||s.motd):'',cat=s.categoria||'desconhecido',rep=s.reputation||50;
+    const motd=cleanMotd(s.motd),cat=s.categoria||'desconhecido',rep=s.reputation||50;
     const sc=s.status==='online'?'var(--success)':s.status==='banned'?'var(--danger)':'var(--text-muted)';
     const rc=rep>70?'var(--success)':rep>40?'var(--warning)':'var(--danger)';
     const pc=s.players?.length||s.onlinePlayers||0;
@@ -1178,7 +1053,7 @@ function renderSrvs(){
     const plugins=(s.plugins||[]).slice(0,8).join(', ');
     const sw=s.serverSoftware?` [${s.serverSoftware}]`:'';
     const skey=esc(s.key);
-    return`<div class="srv-card"><div class="srv-head"><div><span class="srv-name" style="color:${sc}">● ${skey}${esc(sw)}</span> <span class="srv-tag ${cat}">${cat}</span>${(s.tags||[]).map(t=>`<span class="srv-tag">${esc(t)}</span>`).join('')}</div><div style="display:flex;gap:3px;align-items:center;">${isA?`<button class="btn sm" data-srv-action="tag" data-key="${skey}">Tag</button><button class="btn sm" data-srv-action="cat" data-key="${skey}">Cat</button><button class="btn sm" data-srv-action="scan" data-key="${skey}">Scan</button><button class="btn sm ${(stats.silentServers||[]).includes(s.key)?'danger':''}" data-srv-action="silent" data-key="${skey}">${(stats.silentServers||[]).includes(s.key)?'Unsilent':'Silent'}</button>`:''}<span style="font-size:10px;color:var(--text-muted);">Pl:${pc}/${s.maxPlayers||'?'}</span></div></div>${motdHtml?`<div class="srv-motd motd-html">${motdHtml}</div>`:''}<div class="srv-meta"><span>v${s.version||'?'}</span><span>${s.status}</span>${s.ping?`<span>Ping:${s.ping}ms</span>`:''}<span>Rep:${rep}</span></div>${plugins?`<div class="srv-plugins">Plugins: ${esc(plugins)}</div>`:''}<div class="rep-bar"><div class="fill" style="width:${rep}%;background:${rc}"></div></div></div>`;
+    return`<div class="srv-card"><div class="srv-head"><div><span class="srv-name" style="color:${sc}">● ${skey}${esc(sw)}</span> <span class="srv-tag ${cat}">${cat}</span>${(s.tags||[]).map(t=>`<span class="srv-tag">${esc(t)}</span>`).join('')}</div><div style="display:flex;gap:3px;align-items:center;">${isA?`<button class="btn sm" data-srv-action="tag" data-key="${skey}">Tag</button><button class="btn sm" data-srv-action="cat" data-key="${skey}">Cat</button><button class="btn sm" data-srv-action="scan" data-key="${skey}">Scan</button><button class="btn sm ${(stats.silentServers||[]).includes(s.key)?'danger':''}" data-srv-action="silent" data-key="${skey}">${(stats.silentServers||[]).includes(s.key)?'Unsilent':'Silent'}</button>`:''}<span style="font-size:10px;color:var(--text-muted);">Pl:${pc}/${s.maxPlayers||'?'}</span></div></div>${motd?`<div class="srv-motd">"${esc(motd)}"</div>`:''}<div class="srv-meta"><span>v${s.version||'?'}</span><span>${s.status}</span>${s.ping?`<span>Ping:${s.ping}ms</span>`:''}<span>Rep:${rep}</span></div>${plugins?`<div class="srv-plugins">Plugins: ${esc(plugins)}</div>`:''}<div class="rep-bar"><div class="fill" style="width:${rep}%;background:${rc}"></div></div></div>`;
   }).join('');
   p.querySelectorAll('[data-srv-action]').forEach(btn=>{ btn.addEventListener('click',()=>{ const action=btn.dataset.srvAction,key=btn.dataset.key; if(action==='tag'){ const t=prompt('Tag:'); if(t) socket.emit('addServerTag',{serverKey:key,tag:t.trim()}); } if(action==='cat'){ const c=prompt('Categoria:'); if(c) socket.emit('setServerCategory',{serverKey:key,categoria:c.trim()}); } if(action==='scan'){ socket.emit('scanVulnerabilities',key); toast(`Scan: ${key}`); } if(action==='silent') toggleSilent(key); }); });
 }
@@ -1198,355 +1073,111 @@ function renderPlayersResult(players){
   }).join('');
 }
 
-// ══ INVENTORY ══
-// ══ MINECRAFT ITEM ICONS ══
-const MC_ICONS={
-  // Armor
-  'leather_helmet':'🪖','iron_helmet':'⛑️','gold_helmet':'👑','diamond_helmet':'💎','netherite_helmet':'🔱',
-  'leather_chestplate':'🦺','iron_chestplate':'🛡️','gold_chestplate':'🏅','diamond_chestplate':'🔮','netherite_chestplate':'⚔️',
-  'leather_leggings':'👖','iron_leggings':'🔩','gold_leggings':'✨','diamond_leggings':'💠','netherite_leggings':'🔷',
-  'leather_boots':'👟','iron_boots':'🥾','gold_boots':'🌟','diamond_boots':'💫','netherite_boots':'🖤',
-  // Swords
-  'wooden_sword':'🗡️','stone_sword':'⚔️','iron_sword':'🗡️','gold_sword':'⚔️','diamond_sword':'💎','netherite_sword':'🔪',
-  // Picks
-  'wooden_pickaxe':'⛏️','stone_pickaxe':'⛏️','iron_pickaxe':'⛏️','gold_pickaxe':'⛏️','diamond_pickaxe':'💎','netherite_pickaxe':'⛏️',
-  // Food
-  'bread':'🍞','apple':'🍎','golden_apple':'🍏','cooked_beef':'🥩','cooked_chicken':'🍗','cooked_porkchop':'🥓',
-  'carrot':'🥕','potato':'🥔','melon_slice':'🍉','watermelon_slice':'🍉',
-  // Resources
-  'coal':'⚫','iron_ingot':'⬜','gold_ingot':'🟡','diamond':'💎','emerald':'💚','lapis_lazuli':'🔵',
-  'redstone':'🔴','quartz':'⬜','netherite_ingot':'⬛','netherite_scrap':'🟫',
-  // Blocks
-  'dirt':'🟫','stone':'⬜','cobblestone':'⬜','sand':'🟡','gravel':'⬜',
-  'oak_log':'🪵','birch_log':'🪵','dark_oak_log':'🪵',
-  'torch':'🕯️','chest':'📦','crafting_table':'🔲','furnace':'🔥',
-  // Tools
-  'bow':'🏹','arrow':'➡️','fishing_rod':'🎣','shears':'✂️','flint_and_steel':'🔥',
-  // Misc
-  'book':'📖','enchanted_book':'✨','map':'🗺️','compass':'🧭',
-  'ender_pearl':'🔮','blaze_rod':'🪄','exp_bottle':'🍾','clock':'🕐',
-  'shield':'🛡️','elytra':'🪂','totem_of_undying':'🗿',
-  'bucket':'🪣','water_bucket':'🪣','lava_bucket':'🪣','milk_bucket':'🍼',
-  'saddle':'🐎','name_tag':'🏷️',
-};
-function getItemIcon(name){
-  if(!name) return '📦';
-  const n=name.toLowerCase().replace(/ /g,'_');
-  if(MC_ICONS[n]) return MC_ICONS[n];
-  // fuzzy match
-  for(const [k,v] of Object.entries(MC_ICONS)){ if(n.includes(k)||k.includes(n)) return v; }
-  // category defaults
-  if(n.includes('sword')||n.includes('axe')) return '⚔️';
-  if(n.includes('pickaxe')) return '⛏️';
-  if(n.includes('shovel')) return '🪛';
-  if(n.includes('hoe')) return '🌾';
-  if(n.includes('helmet')||n.includes('cap')) return '⛑️';
-  if(n.includes('chestplate')) return '🛡️';
-  if(n.includes('legging')) return '👖';
-  if(n.includes('boot')) return '🥾';
-  if(n.includes('log')||n.includes('plank')) return '🪵';
-  if(n.includes('ore')) return '⛏️';
-  if(n.includes('ingot')) return '🔩';
-  if(n.includes('seed')) return '🌱';
-  if(n.includes('flower')||n.includes('tulip')) return '🌷';
-  if(n.includes('food')||n.includes('bread')||n.includes('stew')) return '🍲';
-  return '📦';
+// ══ MC TEXTURES ══
+const MC_TEX = 'https://cdn.jsdelivr.net/gh/InventivetalentDev/minecraft-assets@1.21.4/assets/minecraft/textures/';
+function mcTex(name, type='item') {
+  if (!name) return null;
+  const n = String(name).toLowerCase().replace(/^minecraft:/,'').replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
+  return `${MC_TEX}${type}/${n}.png`;
 }
-function makeMcSlot(item, cls=''){
-  const hasItem=item&&item.name&&item.name!=='air';
-  const icon=hasItem?getItemIcon(item.name):'';
-  const count=hasItem&&item.count>1?`<div class="slot-count">${item.count}</div>`:'';
-  const name=hasItem?(item.displayName||item.name):'';
-  const tooltip=hasItem?`<div class="slot-tooltip">${esc(name)}</div>`:'';
-  return `<div class="mc-slot${cls?` ${cls}`:''} ${hasItem?'':'empty'}">${icon?`<span class="slot-icon">${icon}</span>`:''}${count}${tooltip}</div>`;
+function mcSlot(item, tooltip, extra='') {
+  const tip = esc(item ? (item.displayName||item.name) + (tooltip?' — '+tooltip:'') : (tooltip||''));
+  if (!item || !item.name) return `<div class="mc-slot${extra}" title="${tip}"></div>`;
+  const tex = mcTex(item.displayName||item.name);
+  const blkTex = mcTex(item.displayName||item.name, 'block');
+  const cnt = item.count > 1 ? `<span class="mc-count">${item.count}</span>` : '';
+  return `<div class="mc-slot${extra}" title="${tip}">
+    <img src="${tex}" alt="${esc(item.name)}" onerror="if(this.dataset.fb)this.style.display='none';else{this.dataset.fb='1';this.src='${blkTex}';}">
+    ${cnt}
+  </div>`;
+}
+
+// ══ INVENTORY ══
+function refreshInv(){
+  const key=document.getElementById('invBotSelect').value;
+  if(key&&socket) socket.emit('getInventory',key);
+  renderInventory();
 }
 function renderInventory(){
-  const sel=document.getElementById('invBotSelect'),key=sel?.value;
-  const container=document.getElementById('mcInvContainer');
-  const armorDetail=document.getElementById('invArmorDetail');
-  const slotInfo=document.getElementById('invSlotInfo');
-  const statusEl=document.getElementById('invBotStatus');
-  if(!key){
-    container.innerHTML='<div style="color:var(--text-muted);text-align:center;padding:40px;font-size:12px;">Selecione um bot</div>';
-    if(armorDetail) armorDetail.innerHTML='<div style="color:var(--text-muted);font-size:12px;">Sem armadura</div>';
-    return;
-  }
+  const sel=document.getElementById('invBotSelect'), key=sel.value;
+  const cont=document.getElementById('invContainer');
+  if(!key){ cont.innerHTML='<div class="mc-inv-empty">Selecione um bot para ver o inventário</div>'; return; }
   const bot=allBots.find(b=>b.key===key);
   const inv=bot?.inventory||inventoryData[key];
-  if(!inv){
-    container.innerHTML='<div style="color:var(--text-muted);text-align:center;padding:40px;font-size:12px;">Sem dados de inventário. Aguardando atualização...</div>';
-    return;
+
+  // update stat bar
+  if(bot){
+    document.getElementById('invHpBar').textContent='❤ '+(bot.hp!=null?Math.round(bot.hp):'—');
+    document.getElementById('invFoodBar').textContent='🍖 '+(bot.food!=null?Math.round(bot.food):'—');
+    document.getElementById('invTpsBar').textContent='TPS: '+(bot.tps||'—');
   }
-  if(statusEl) statusEl.textContent=bot?`HP:${Math.round(bot.hp||0)} Food:${Math.round(bot.food||0)} TPS:${bot.tps||'?'}`:'';
-  if(slotInfo) slotInfo.textContent=`${inv.usedSlots||0}/${inv.totalSlots||36} slots usados`;
 
-  // Build MC-style inventory
-  const armor=inv.armor||[];
-  const items=inv.items||[];
-  const hotbar=items.slice(0,9);
-  const mainInv=items.slice(9,36);
-  const offhand=inv.offhand||null;
+  if(!inv){ cont.innerHTML='<div class="mc-inv-empty">Sem dados de inventário. Aguardando...</div>'; return; }
 
-  // Armor slot icons
-  const armorSlots=[
-    {slot:'helmet',label:'Elmo',pos:0},
-    {slot:'chestplate',label:'Peitoral',pos:1},
-    {slot:'leggings',label:'Calça',pos:2},
-    {slot:'boots',label:'Botas',pos:3},
-  ];
-  const armorItems=armorSlots.map(s=>armor.find(a=>(a.name||'').includes(s.slot))||null);
+  const armor = inv.armor||[];
+  const items = inv.items||[];
+  const armorLabels = ['Capacete','Peitoral','Calças','Botas'];
+  const armorSlots = ['diamond_helmet','diamond_chestplate','diamond_leggings','diamond_boots'];
+  const username = bot?.username||key.split(':')[0]||'Player';
 
-  // Crafting slots (empty - decorative)
-  const craftSlots=Array(4).fill(null);
+  // 4 armor slots
+  let armorHtml = '';
+  for(let i=0;i<4;i++) armorHtml += mcSlot(armor[i]||null, armorLabels[i]);
 
-  let html=`<div class="mc-inv-wrap">`;
-  html+=`<div class="mc-inv-title">Inventário - ${esc(bot?.username||key)}</div>`;
-  html+=`<div class="mc-inv-body">`;
-  // Left: armor slots
-  html+=`<div class="mc-inv-left">`;
-  for(let i=0;i<4;i++){
-    const a=armorItems[i];
-    html+=makeMcSlot(a,'armor-slot');
-  }
-  html+=`</div>`;
-  // Center: player silhouette
-  html+=`<div class="mc-inv-center" title="${esc(bot?.username||'?')}">
-    <div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:36px;color:#fff;opacity:0.7;user-select:none;">🧑</div>
-  </div>`;
-  // Right: 2x2 crafting grid
-  html+=`<div class="mc-inv-crafting">`;
-  html+=`<div class="mc-crafting-row">${makeMcSlot(null)}${makeMcSlot(null)}</div>`;
-  html+=`<div style="display:flex;align-items:center;gap:2px;">`;
-  html+=`<div style="display:flex;flex-direction:column;gap:2px;"><div class="mc-crafting-row">${makeMcSlot(null)}${makeMcSlot(null)}</div></div>`;
-  html+=`<div class="mc-craft-arrow">→</div>`;
-  html+=makeMcSlot(null);
-  html+=`</div></div>`;
-  html+=`</div>`; // end body
-  // Off-hand
-  html+=`<div class="mc-offhand">${makeMcSlot(offhand)}<span style="font-size:9px;color:#555;align-self:center;margin-left:4px;">Mão Aux.</span></div>`;
-  // Spacer
-  html+=`<div class="mc-inv-spacer"></div>`;
-  // Main inventory (3 rows of 9)
-  html+=`<div class="mc-inv-section">`;
-  for(let row=0;row<3;row++){
-    html+=`<div class="mc-inv-row">`;
-    for(let col=0;col<9;col++){
-      html+=makeMcSlot(mainInv[row*9+col]||null);
-    }
-    html+=`</div>`;
-  }
-  html+=`</div>`;
-  html+=`<div class="mc-hotbar-sep"></div>`;
-  // Hotbar
-  html+=`<div class="mc-inv-row">`;
-  for(let i=0;i<9;i++) html+=makeMcSlot(hotbar[i]||null,'hotbar');
-  html+=`</div>`;
-  html+=`<div class="mc-inv-name-tag">Hotbar</div>`;
-  html+=`</div>`; // end mc-inv-wrap
-  container.innerHTML=html;
+  // 27 main slots (indices 0-26 from items array)
+  let mainHtml = '';
+  for(let i=0;i<27;i++) mainHtml += mcSlot(items[i]||null);
 
-  // Armor detail
-  if(armorDetail){
-    const equipped=armorItems.filter(Boolean);
-    if(!equipped.length){
-      armorDetail.innerHTML='<div style="color:var(--text-muted);font-size:12px;">Sem armadura equipada</div>';
-    } else {
-      armorDetail.innerHTML=`<div style="display:flex;gap:12px;flex-wrap:wrap;">${equipped.map(a=>`<div style="display:flex;align-items:center;gap:6px;font-size:12px;"><span style="font-size:20px;">${getItemIcon(a.name)}</span><div><div style="font-weight:600;">${esc(a.displayName||a.name)}</div><div style="font-size:10px;color:var(--text-muted);">Durabilidade: ${a.durabilityUsed!=null?a.maxDurability-a.durabilityUsed+'/'+a.maxDurability:'?'}</div></div></div>`).join('')}</div>`;
-    }
-  }
-}
+  // 9 hotbar slots (indices 27-35)
+  let hotbarHtml = '';
+  for(let i=27;i<36;i++) hotbarHtml += mcSlot(items[i]||null);
 
-// ══ VIEWER (Radmin + prismarine-web-client) ══
-let viewerChatMsgs=[];
-let viewerCurrentSrv=null;
+  // offhand
+  const offhand = inv.offhand||null;
 
-function renderViewerBotList(){
-  const panel=document.getElementById('viewerBotListPanel');
-  if(!panel) return;
-  const withViewer=allBots.filter(b=>b.conectado&&b.viewerPort);
-  if(!withViewer.length){
-    panel.innerHTML='<div style="color:var(--text-muted);text-align:center;padding:24px;font-size:12px;">Nenhum bot com viewer ativo. Certifique-se que viewer_enabled=true no config.json</div>';
-    return;
-  }
-  panel.innerHTML=`<div class="viewer-bot-list">${withViewer.map(b=>{
-    const motdHtml=b.motdRaw||b.motd?parseMotd(b.motdRaw||b.motd):'';
-    const radminIp=b.radminIp||null;
-    const link=radminIp?`http://${radminIp}:${b.viewerPort}`:`http://${window.location.hostname}:${b.viewerPort}`;
-    return `<div class="viewer-bot-card" onclick="loadViewerBot('${esc(b.key)}',${b.viewerPort},'${radminIp||window.location.hostname}')">
-      <div style="font-size:24px;">${radminIp?'📡':'👁️'}</div>
-      <div style="flex:1;min-width:0;">
-        <div style="font-weight:600;font-size:12px;">${esc(b.username||'?')}<span style="font-size:10px;color:var(--text-muted);"> @ ${esc(b.key)}</span></div>
-        ${motdHtml?`<div class="vbc-motd motd-html">${motdHtml}</div>`:''}
-        <div class="vbc-link">${radminIp?`📡 Radmin: ${link}`:`🌐 Local: ${link}`}</div>
+  cont.innerHTML = `
+  <div class="mc-inv-wrap">
+    <div class="mc-inv-gui">
+      <div class="mc-inv-title">Inventário — ${esc(username)}</div>
+      <div class="mc-inv-upper">
+        <!-- Armor -->
+        <div class="mc-armor-col">${armorHtml}</div>
+        <!-- Player -->
+        <div class="mc-player-box">
+          <img src="https://mc-heads.net/body/${esc(username)}/56" alt="player" onerror="this.src='https://mc-heads.net/body/Steve/56'">
+        </div>
+        <!-- Crafting -->
+        <div class="mc-crafting-area">
+          <div class="mc-2x2">
+            ${mcSlot(null)+''.repeat(0)}${mcSlot(null)}
+            ${mcSlot(null)}${mcSlot(null)}
+          </div>
+          <div class="mc-arrow">→</div>
+          <div class="mc-slot mc-slot-out"></div>
+        </div>
       </div>
-      <div class="vbc-actions">
-        <button class="btn sm primary" onclick="event.stopPropagation();window.open('${link}','_blank')">Abrir ↗</button>
+      <!-- Offhand -->
+      <div class="mc-offhand-row">
+        ${mcSlot(offhand, 'Mão Aux.')}
+        <span class="mc-offhand-lbl">Mão Aux.</span>
       </div>
-    </div>`;
-  }).join('')}</div>`;
-}
-
-function loadViewerBot(botKey, port, host){
-  viewerCurrentSrv=botKey;
-  const panel=document.getElementById('viewerPanel');
-  const url=`http://${host}:${port}`;
-  // Update active state
-  document.querySelectorAll('.viewer-bot-card').forEach(c=>c.classList.remove('active'));
-  event.currentTarget?.classList.add('active');
-  document.getElementById('viewerStatus').textContent=`${botKey} @ porta ${port}`;
-  panel.innerHTML=buildViewerHtml(url, `${botKey} — ${url}`);
-  renderViewerChat();
-  const tog=document.getElementById('viewerChatToggle');
-  if(tog) tog.checked=true;
-}
-
-function buildViewerHtml(iframeSrc, label){
-  return `<div class="viewer-wrap" id="viewerWrap">
-    <iframe class="viewer-frame" id="viewerIframe" src="${esc(iframeSrc)}" allowfullscreen></iframe>
-    <div class="viewer-overlay" id="viewerChatOverlay">
-      <div class="viewer-overlay-h">💬 CHAT AO VIVO</div>
-      <div class="viewer-chat-msgs" id="viewerChatList"><div style="color:var(--text-muted);font-size:10px;padding:8px;">Aguardando mensagens...</div></div>
-      <div class="viewer-chat-input admin-only">
-        <input id="viewerSendMsg" placeholder="Mensagem..." onkeydown="if(event.key==='Enter')viewerSend()">
-        <button class="btn primary" onclick="viewerSend()">↵</button>
-      </div>
+      <!-- Main 3x9 -->
+      <div class="mc-inv-main">${mainHtml}</div>
+      <div class="mc-inv-sep"></div>
+      <!-- Hotbar -->
+      <div class="mc-inv-hotbar">${hotbarHtml}</div>
+      <div class="mc-hotbar-lbl">Hotbar — ${inv.usedSlots||0}/${inv.totalSlots||36} slots</div>
     </div>
-  </div>
-  <div style="font-size:10px;color:var(--text-muted);margin-top:6px;font-family:'JetBrains Mono',monospace;">${esc(label)}</div>`;
+  </div>`;
 }
 
-function toggleViewerChat(){
-  const ov=document.getElementById('viewerChatOverlay');
-  const iframe=document.getElementById('viewerIframe');
-  if(!ov||!iframe) return;
-  const show=document.getElementById('viewerChatToggle').checked;
-  ov.style.display=show?'flex':'none';
-  iframe.style.width=show?'calc(100% - 280px)':'100%';
-}
-
-function renderViewerChat(){
-  const el=document.getElementById('viewerChatList');
-  if(!el) return;
-  const msgs=viewerChatMsgs.slice(-80);
-  if(!msgs.length){ el.innerHTML='<div style="color:var(--text-muted);font-size:10px;padding:8px;">Sem mensagens ainda</div>'; return; }
-  el.innerHTML=msgs.map(m=>{
-    const time=m.timestamp?new Date(m.timestamp).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'';
-    return `<div class="vcm-entry"><span class="vcm-who">${esc(m.username||'?')}</span><span class="vcm-msg">${esc(m.message||'')}</span><span class="vcm-ts">${time}</span></div>`;
-  }).join('');
-  el.scrollTop=el.scrollHeight;
-}
-
-function viewerSend(){
-  const inp=document.getElementById('viewerSendMsg');
-  if(!inp||!inp.value.trim()) return;
-  socket.emit('sendChat',{server: viewerCurrentSrv||'all', message: inp.value.trim()});
-  inp.value='';
-}
-
-function onNewChatMsg(msg){
-  viewerChatMsgs.push(msg);
-  if(viewerChatMsgs.length>300) viewerChatMsgs.shift();
-  if(document.getElementById('viewerChatList')) renderViewerChat();
-}
-
-// ══ COMANDOS ══
-let cmdLog=[];
-function refreshCmdBotList(){
-  const sel=document.getElementById('cmdTargetSelect');
-  if(!sel) return;
-  const cv=sel.value;
-  const bl=allBots.filter(b=>b.conectado);
-  sel.innerHTML='<option value="all">🌐 Todos os Bots ('+bl.length+')</option>'+
-    bl.map(b=>{
-      const motd=cleanMotd(b.motdRaw||b.motd||'');
-      return `<option value="${esc(b.key)}">${esc(b.username||'?')} @ ${esc(b.key)}${motd?' — '+motd:''}</option>`;
-    }).join('');
-  if(cv) sel.value=cv;
-  const info=document.getElementById('cmdTargetInfo');
-  if(info) info.textContent=bl.length+' bot(s) conectado(s)';
-}
-
-function sendBotCmd(cmdText){
-  const target=document.getElementById('cmdTargetSelect')?.value||'all';
-  if(!socket?.connected){ toast('⚠️ Desconectado!'); return; }
-  socket.emit('botCommand',{target, command: cmdText});
-  addCmdLog(target, cmdText);
-  toast(`📤 Enviado: ${cmdText}`);
-}
-
-function promptBotCmd(prefix, label){
-  const val=window.prompt(label,'');
-  if(val===null||val==='') return;
-  sendBotCmd(prefix+val.trim());
-}
-
-function sendCustomCmd(){
-  const inp=document.getElementById('customCmdInput');
-  const asChat=document.getElementById('cmdAsChat')?.checked;
-  if(!inp||!inp.value.trim()) return;
-  const cmd=inp.value.trim();
-  const target=document.getElementById('cmdTargetSelect')?.value||'all';
-  if(!socket?.connected){ toast('⚠️ Desconectado!'); return; }
-  if(asChat){
-    socket.emit('sendChat',{server: target==='all'?'all':target, message: cmd});
-  } else {
-    socket.emit('botCommand',{target, command: cmd});
-  }
-  addCmdLog(target, cmd+(asChat?' [chat]':''));
-  inp.value='';
-  toast('📤 Enviado!');
-}
-
-function addCmdLog(target, cmdText){
-  const now=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  cmdLog.unshift({time:now,target,cmd:cmdText});
-  if(cmdLog.length>50) cmdLog.pop();
-  const el=document.getElementById('cmdLog');
-  if(!el) return;
-  el.innerHTML=cmdLog.map(e=>`<div class="cmd-log-entry"><span class="cle-time">[${e.time}]</span> <span class="cle-bot">${esc(e.target)}</span> <span class="cle-cmd">${esc(e.cmd)}</span></div>`).join('');
-}
-
-// ══ HELPERS ══
-function parseMotd(motd){
-  if(!motd) return '';
-  let text='';
-  if(typeof motd==='object'){
-    // JSON chat component
-    function parseComp(c){
-      if(!c) return '';
-      if(typeof c==='string') return esc(c);
-      let out='';
-      const style=[];
-      if(c.color){const cl=c.color.replace('#','');const cMap={black:'0',dark_blue:'1',dark_green:'2',dark_aqua:'3',dark_red:'4',dark_purple:'5',gold:'6',gray:'7',dark_gray:'8',blue:'9',green:'a',aqua:'b',red:'c',light_purple:'d',yellow:'e',white:'f'};const code=cMap[c.color]||'7';style.push(`class="mc-${code}"`);}
-      if(c.bold) style.push('style="font-weight:bold"');
-      if(c.italic) style.push('style="font-style:italic"');
-      if(c.underlined) style.push('style="text-decoration:underline"');
-      const open=style.length?`<span ${style.join(' ')}>`:'';
-      const close=style.length?'</span>':'';
-      out+=open+esc(c.text||'')+close;
-      if(c.extra) out+=c.extra.map(parseComp).join('');
-      return out;
-    }
-    return parseComp(motd);
-  }
-  // String with § codes
-  const colorMap={'0':'mc-0','1':'mc-1','2':'mc-2','3':'mc-3','4':'mc-4','5':'mc-5','6':'mc-6','7':'mc-7','8':'mc-8','9':'mc-9','a':'mc-a','b':'mc-b','c':'mc-c','d':'mc-d','e':'mc-e','f':'mc-f','k':'mc-k','l':'mc-l','m':'mc-m','n':'mc-n','o':'mc-o'};
-  let html='', openTags=[];
-  const str=String(motd).replace(/\n/g,'<br>');
-  let i=0;
-  while(i<str.length){
-    if((str[i]==='§'||str[i]==='\u00a7')&&i+1<str.length){
-      const code=str[i+1].toLowerCase();
-      if(code==='r'){ openTags.forEach(()=>html+='</span>'); openTags=[]; }
-      else if(colorMap[code]){ html+=`<span class="${colorMap[code]}">`; openTags.push('</span>'); }
-      i+=2;
-    } else {
-      html+=str[i]==='<'?'&lt;':str[i]==='>'?'&gt;':str[i]==='&'?'&amp;':str[i];
-      i++;
-    }
-  }
-  openTags.forEach(()=>html+='</span>');
-  return html;
+// ══ VIEWER ══
+function loadViewer(){
+  const sel=document.getElementById('viewerBotSelect');
+  const port=sel.value,panel=document.getElementById('viewerPanel');
+  if(!port){ panel.innerHTML='<div style="color:var(--text-muted);text-align:center;padding:40px;font-size:12px;">Selecione um bot</div>'; return; }
+  const viewerHost=window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1'?`http://${window.location.hostname}:${port}`:`${window.location.protocol}//${window.location.hostname}:${port}`;
+  panel.innerHTML=`<iframe class="viewer-frame" src="${esc(viewerHost)}" frameborder="0" allowfullscreen></iframe><div style="font-size:10px;color:var(--text-muted);margin-top:6px;">Porta: ${esc(port)}</div>`;
 }
 
 // ══ IMPRESSIONS ══
@@ -1565,7 +1196,7 @@ function renderTopSrv(){
   const top=Object.entries(ss).map(([k,d])=>({key:k,msgs:d.msgs,pl:d.pl.size})).sort((a,b)=>b.msgs-a.msgs).slice(0,3);
   if(!top.length){ p.innerHTML='<div style="padding:16px;color:var(--text-muted);text-align:center;font-size:12px;">Aguardando...</div>'; return; }
   const medals=['#1','#2','#3'];
-  p.innerHTML=top.map((s,i)=>{ const srv=allServers.find(x=>x.key===s.key); const motdHtml=srv&&(srv.motdRaw||srv.motd)?`<div class="bot-motd motd-html">${parseMotd(srv.motdRaw||srv.motd)}</div>`:''; return`<div class="bot-card"><div style="font-size:14px;font-weight:800;color:var(--cyan);min-width:22px;">${medals[i]}</div><div class="bot-info"><div class="bot-name">${esc(s.key)}</div>${motdHtml}</div><div class="bot-mini"><span>Msg:${s.msgs}</span><span>Pl:${s.pl}</span></div></div>`; }).join('');
+  p.innerHTML=top.map((s,i)=>{ const srv=allServers.find(x=>x.key===s.key); const motd=srv?cleanMotd(srv.motd):''; return`<div class="bot-card"><div style="font-size:14px;font-weight:800;color:var(--cyan);min-width:22px;">${medals[i]}</div><div class="bot-info"><div class="bot-name">${esc(s.key)}</div>${motd?`<div class="bot-motd">${esc(motd)}</div>`:''}</div><div class="bot-mini"><span>Msg:${s.msgs}</span><span>Pl:${s.pl}</span></div></div>`; }).join('');
 }
 function renderTSC(){
   const p=document.getElementById('tscPanel');
@@ -1708,19 +1339,169 @@ function copyKey(k){
 }
 function fallbackCopy(text){ const ta=document.createElement('textarea'); ta.value=text; ta.style.cssText='position:fixed;opacity:0;top:0;left:0;'; document.body.appendChild(ta); ta.focus(); ta.select(); try{ document.execCommand('copy'); toast('Copiada!'); } catch(e){ toast('Use HTTPS para copiar.'); } document.body.removeChild(ta); }
 
+// ══ PLUGINS ══
+const PLUGIN_DEFS = [
+  { id:'ai-chat-bot',    cfg:'ai_chat_enabled',     desc:'Usa Claude API para responder menções com IA (requer ANTHROPIC_API_KEY no .env)' },
+  { id:'client-brand',   cfg:'client_brand',         desc:'Brand enviado ao servidor (vanilla, fabric, forge) — afeta detecção do servidor' },
+  { id:'auto-totem',     cfg:'auto_totem',           desc:'Equipa totem de imortalidade na mão auxiliar automaticamente' },
+  { id:'auto-register',  cfg:'auto_register',        desc:'Registra e faz login automaticamente em servidores AuthMe' },
+  { id:'anti-afk',       cfg:'anti_afk',           desc:'Move x blocos aleatoriamente para evitar kick por AFK' },
+  { id:'auto-armor',     cfg:'auto_armor',          desc:'Equipa automaticamente a melhor armadura disponível' },
+  { id:'auto-eat',       cfg:'auto_eat',            desc:'Come automaticamente quando com fome' },
+  { id:'auto-collect',   cfg:'auto_collect',        desc:'Coleta itens do chão automaticamente' },
+  { id:'auto-sleep',     cfg:'auto_sleep',          desc:'Dorme automaticamente quando disponível' },
+  { id:'auto-fish',      cfg:'auto_fish',           desc:'Pesca automaticamente quando possível' },
+  { id:'mining-enabled', cfg:'mining_enabled',      desc:'Permite comandos de mineração (!minerar)' },
+  { id:'greet-players',  cfg:'greet_players',       desc:'Saúda jogadores que entram no servidor' },
+  { id:'respond-mentions',cfg:'respond_mentions',   desc:'Responde quando mencionado no chat' },
+  { id:'vary-messages',  cfg:'vary_messages',       desc:'Varia os anúncios para parecer mais humano' },
+  { id:'rotate-names',   cfg:'rotate_names',        desc:'Rotaciona os usernames dos bots' },
+  { id:'anti-bot-detection',cfg:'anti_bot_detection',desc:'Técnicas anti-detecção de bot (timing humano, typos)' },
+  { id:'human-timing',   cfg:'human_timing',        desc:'Delays aleatórios para simular digitação humana' },
+  { id:'flee-mobs',      cfg:'flee_mobs',           desc:'Foge automaticamente de mobs perigosos' },
+  { id:'dodge-projectiles',cfg:'dodge_projectiles', desc:'Tenta desviar de projéteis' },
+  { id:'avoid-hazards',  cfg:'avoid_hazards',       desc:'Evita hazards como lava, vazio e fogo' },
+  { id:'prime-time-boost',cfg:'prime_time_boost',   desc:'Aumenta frequência de anúncios no horário de pico' },
+  { id:'pause-if-empty', cfg:'pause_if_empty',      desc:'Pausa anúncios quando servidor está vazio' },
+  { id:'spam-detection', cfg:'spam_detection',      desc:'Detecta spam de outros jogadores/bots' },
+  { id:'cheater-detection',cfg:'cheater_detection', desc:'Detecta possíveis cheaters por padrões de jogo' },
+  { id:'sentiment-analysis',cfg:'sentiment_analysis',desc:'Analisa o sentimento das mensagens do chat' },
+  { id:'player-tracking',cfg:'player_tracking',     desc:'Rastreia entrada/saída e comportamento de players' },
+  { id:'server-health-monitor',cfg:'server_health_monitor',desc:'Monitora saúde e performance dos servidores' },
+  { id:'self-healing',   cfg:'self_healing',        desc:'Auto-reconecta e reinicia bots com problemas' },
+  { id:'tab-complete-exploit',cfg:'tab_complete_exploit',desc:'Usa tab-complete para enumerar players/comandos' },
+  { id:'detect-vulnerabilities',cfg:'detect_vulnerabilities',desc:'Detecta vulnerabilidades nos servidores conectados' },
+  { id:'impressions-tracking',cfg:'impressions_tracking',desc:'Rastreia impressões de anúncios por servidor' },
+  { id:'ping-offline',   cfg:'ping_offline_servers',desc:'Pinga servidores offline para reconectar quando disponível' },
+  { id:'ban-rename',     cfg:'ban_rename',          desc:'Renomeia bot automaticamente após ban' },
+  { id:'open-chests',    cfg:'open_chests',         desc:'Abre baús para explorar conteúdo' },
+  { id:'viewer',         cfg:'viewer_enabled',      desc:'Habilita o viewer 3D do bot via prismarine-web-client' },
+  { id:'backup-saves',   cfg:'backup_before_save',  desc:'Cria backup antes de salvar arquivos de dados' },
+  { id:'error-log',      cfg:'error_log_file',      desc:'Salva erros em arquivo de log separado' },
+  { id:'debug',          cfg:'debug',               desc:'Modo debug — logs detalhados no console' },
+];
+
+// ══ SECURITY PAGE ══
+function loadSecurity() {
+  if(!socket?.connected) return;
+  socket.emit('getLoginLog', (log) => {
+    renderSecurityLog(log||[]);
+  });
+  // Also fetch /user-info for our own connection info
+  fetch('/user-info').then(r=>r.json()).then(d => {
+    const grid = document.getElementById('secInfoGrid');
+    const sessions = d.activeSessions||[];
+    grid.innerHTML = `
+      <div class="panel" style="padding:12px 14px;">
+        <div class="panel-h" style="margin-bottom:8px;">Sua Conexão</div>
+        ${secInfoRow('IP',d.yourRequest?.ip)}
+        ${secInfoRow('User-Agent',d.yourRequest?.userAgent?.substring(0,80))}
+        ${secInfoRow('Idioma',d.yourRequest?.language?.substring(0,30))}
+      </div>
+      <div class="panel" style="padding:12px 14px;">
+        <div class="panel-h" style="margin-bottom:8px;">Relay</div>
+        ${secInfoRow('Versão',d.relayVersion)}
+        ${secInfoRow('Uptime',d.uptime)}
+        ${secInfoRow('Bot Online',d.botOnline?'✅':'❌')}
+        ${secInfoRow('Sessões Ativas',sessions.length)}
+        ${secInfoRow('Server Time',new Date(d.serverTime).toLocaleString('pt-BR'))}
+      </div>
+      <div class="panel" style="padding:12px 14px;">
+        <div class="panel-h" style="margin-bottom:8px;">Sessões Ativas (${sessions.length})</div>
+        ${sessions.length?sessions.map(s=>`
+          <div style="font-size:11px;border-bottom:1px solid var(--border);padding:5px 0;font-family:'JetBrains Mono',monospace;">
+            <span style="color:var(--cyan)">${esc(s.username)}</span>
+            <span style="color:var(--text-muted);margin-left:6px;">${esc(s.role)}</span>
+            <span style="color:var(--text-dim);margin-left:6px;">${esc(s.ip)}</span>
+            <div style="color:var(--text-muted);font-size:10px;margin-top:2px;">${esc((s.userAgent||'').substring(0,60))}</div>
+          </div>`).join('') : '<div style="color:var(--text-muted);font-size:11px;">Nenhuma sessão ativa</div>'}
+      </div>`;
+  }).catch(()=>{});
+}
+
+function secInfoRow(label, val) {
+  return `<div style="display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid var(--border);">
+    <span style="color:var(--text-muted);font-family:'JetBrains Mono',monospace;">${label}</span>
+    <span style="color:var(--text-dim);word-break:break-all;max-width:200px;text-align:right;">${esc(String(val||'—'))}</span>
+  </div>`;
+}
+
+function renderSecurityLog(log) {
+  const el = document.getElementById('secLoginLog');
+  if(!el) return;
+  if(!log.length){ el.innerHTML='<div style="color:var(--text-muted);font-size:12px;">Sem registros</div>'; return; }
+  el.innerHTML = log.slice().reverse().map(e => {
+    const isOk = e.type==='Sessão Iniciada'||e.type==='Login por API Key';
+    const isFail = e.type==='Falha de Login';
+    const color = isFail?'var(--red)': isOk?'var(--green)':'var(--text-dim)';
+    const dt = new Date(e.timestamp).toLocaleString('pt-BR');
+    return `<div style="display:flex;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px;font-family:'JetBrains Mono',monospace;flex-wrap:wrap;">
+      <span style="color:${color};min-width:140px;">${esc(e.type)}</span>
+      <span style="color:var(--cyan);min-width:80px;">${esc(e.username||'?')}</span>
+      <span style="color:var(--text-muted);min-width:60px;">${esc(e.role||'?')}</span>
+      <span style="color:var(--yellow);min-width:100px;">${esc(e.ip||'?')}</span>
+      <span style="color:var(--text-muted);flex:1;">${esc((e.userAgent||'').substring(0,60))}</span>
+      <span style="color:var(--text-dim);white-space:nowrap;">${dt}</span>
+    </div>`;
+  }).join('');
+}
+
+function refreshPlugins() {
+  if (!stats?.config && !stats?.pluginConfig) {
+    // request from server
+    if(socket?.connected) socket.emit('getConfig', (cfg) => {
+      if(cfg) { stats.pluginConfig = cfg; renderPlugins(cfg); }
+      else renderPlugins(null);
+    });
+  } else {
+    renderPlugins(stats.pluginConfig || stats.config || null);
+  }
+}
+
+function renderPlugins(cfg) {
+  const grid = document.getElementById('pluginGrid');
+  const isA = currentRole === 'admin';
+  grid.innerHTML = PLUGIN_DEFS.map(p => {
+    const enabled = cfg ? (cfg[p.cfg] !== undefined ? !!cfg[p.cfg] : false) : false;
+    const hasData = !!cfg;
+    return `<div class="plugin-card${enabled ? ' enabled' : ''}">
+      <div class="plugin-info">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">
+          <span class="plugin-id">${p.id}</span>
+        </div>
+        <div class="plugin-desc">${p.desc}</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:7px;">
+          <span style="font-size:9px;background:var(--bg);border:1px solid var(--border);padding:1px 6px;border-radius:3px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;">v1.0.0</span>
+          <span style="font-size:9px;background:var(--bg);border:1px solid var(--border);padding:1px 6px;border-radius:3px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;">SØLV3R</span>
+          <span style="font-size:9px;background:var(--bg);border:1px solid var(--border);padding:1px 6px;border-radius:3px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;">${p.cfg}</span>
+        </div>
+      </div>
+      <button class="plugin-tog${enabled?' on':''}"
+        ${!isA||!hasData?'disabled':''}
+        onclick="togglePlugin('${p.cfg}',${!enabled})"
+        title="${enabled?'Desativar':'Ativar'}"></button>
+    </div>`;
+  }).join('');
+}
+
+function togglePlugin(key, val) {
+  if(currentRole!=='admin') return;
+  if(!socket?.connected) { toast('Socket desconectado'); return; }
+  socket.emit('setBotConfig', {key, value: val}, (r) => {
+    if(r?.success) {
+      if(!stats.pluginConfig) stats.pluginConfig = {};
+      stats.pluginConfig[key] = val;
+      renderPlugins(stats.pluginConfig);
+      toast(`${key}: ${val ? 'Ativado' : 'Desativado'}`);
+    } else {
+      toast('Erro ao alterar config (adicione setBotConfig ao server.js)');
+    }
+  });
+}
+
 // ══ ACTIONS ══
 function cmd(c,d){ if(currentRole!=='admin'&&!['refresh'].includes(c)){ toast('Sem permissão'); return; } if(socket) socket.emit(c,d); }
-function connectSrv(){
-  // Try dashboard input first, else prompt
-  const inp=document.getElementById('cIp');
-  let ip=(inp&&inp.value.trim())||'';
-  if(!ip){ ip=window.prompt('IP:Porta do servidor (ex: mc.server.com:25565)',''); }
-  if(!ip||!ip.trim()) return;
-  ip=ip.trim();
-  socket.emit('connect_server',ip);
-  if(inp) inp.value='';
-  toast('Conectando a '+ip+'...');
-}
+function connectSrv(){ const ip=document.getElementById('cIp').value.trim(); if(!ip)return; socket.emit('connect_server',ip); document.getElementById('cIp').value=''; toast('Conectando...'); }
 function connectSrv2(){ const ip=document.getElementById('cIp2').value.trim(); if(!ip)return; socket.emit('connect_server',ip); document.getElementById('cIp2').value=''; toast('Conectando...'); }
 function addMsg(){ const m=document.getElementById('newMsg').value.trim(); if(!m)return; socket.emit('addMsg',m); document.getElementById('newMsg').value=''; }
 function delMsg(i){ socket.emit('delMsg',i); }
@@ -1731,52 +1512,9 @@ function dlChat(){ if(socket) socket.emit('downloadChat'); }
 
 // ══ HELPERS ══
 function esc(t){ if(!t)return''; return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
-function cleanMotd(m){ if(!m)return''; if(typeof m==='object'){ if(m.text!==undefined){ let r=cleanMotd(m.text); if(m.extra)r+=m.extra.map(e=>cleanMotd(e)).join(''); return r; } return m.translate||''; } return String(m).replace(/§[0-9a-fk-or]/gi,'').replace(/\n/g,' ').trim(); }
+function cleanMotd(m){ if(!m)return''; if(typeof m==='object'){ if(m.text!==undefined){ let r=cleanMotd(m.text); if(m.extra)r+=m.extra.map(e=>cleanMotd(e)).join(''); return r; } return m.translate||''; } return String(m).replace(/§[0-9a-fk-or]/gi,'').trim(); }
 function toast(m){ const c=document.getElementById('toastC'); const t=document.createElement('div'); t.className='toast'; t.textContent=m; c.appendChild(t); setTimeout(()=>t.remove(),4000); }
 function dlJSON(d,f){ const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download=f; document.body.appendChild(a); try{ a.click(); toast(f); } finally{ document.body.removeChild(a); URL.revokeObjectURL(u); } }
-
-// ══ COLOR PICKER (Minecraft §codes) ══
-const MC_COLORS=[
-  {code:'0',name:'Preto',bg:'#000000',fg:'#fff'},
-  {code:'1',name:'Azul Escuro',bg:'#0000aa',fg:'#fff'},
-  {code:'2',name:'Verde Escuro',bg:'#00aa00',fg:'#fff'},
-  {code:'3',name:'Ciano Escuro',bg:'#00aaaa',fg:'#fff'},
-  {code:'4',name:'Vermelho Escuro',bg:'#aa0000',fg:'#fff'},
-  {code:'5',name:'Roxo Escuro',bg:'#aa00aa',fg:'#fff'},
-  {code:'6',name:'Dourado',bg:'#ffaa00',fg:'#000'},
-  {code:'7',name:'Cinza',bg:'#aaaaaa',fg:'#000'},
-  {code:'8',name:'Cinza Escuro',bg:'#555555',fg:'#fff'},
-  {code:'9',name:'Azul',bg:'#5555ff',fg:'#fff'},
-  {code:'a',name:'Verde',bg:'#55ff55',fg:'#000'},
-  {code:'b',name:'Ciano',bg:'#55ffff',fg:'#000'},
-  {code:'c',name:'Vermelho',bg:'#ff5555',fg:'#fff'},
-  {code:'d',name:'Rosa',bg:'#ff55ff',fg:'#fff'},
-  {code:'e',name:'Amarelo',bg:'#ffff55',fg:'#000'},
-  {code:'f',name:'Branco',bg:'#ffffff',fg:'#000'},
-];
-function insertColorCode(targetId, code){
-  const inp=document.getElementById(targetId);
-  if(!inp) return;
-  const pos=inp.selectionStart||0;
-  const v=inp.value;
-  inp.value=v.substring(0,pos)+'§'+code+v.substring(pos);
-  inp.focus();
-  inp.setSelectionRange(pos+2,pos+2);
-}
-function showColorPicker(targetId){
-  let existing=document.getElementById('colorPickerPopup');
-  if(existing){ existing.remove(); return; }
-  const pop=document.createElement('div');
-  pop.id='colorPickerPopup';
-  pop.style.cssText='position:fixed;z-index:9998;background:var(--bg-card);border:1px solid var(--border-glow);border-radius:8px;padding:10px;box-shadow:0 8px 32px rgba(0,0,0,.5);';
-  pop.innerHTML=`<div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;font-family:'JetBrains Mono',monospace;">Clique para inserir §código</div>
-  <div class="color-picker-wrap">${MC_COLORS.map(c=>`<div class="color-picker-swatch" style="background:${c.bg};color:${c.fg};" title="${c.name} (§${c.code})" onclick="insertColorCode('${targetId}','${c.code}');document.getElementById('colorPickerPopup')?.remove();">§${c.code}</div>`).join('')}</div>
-  <div class="color-picker-wrap" style="gap:4px;margin-top:4px;">${['l','m','n','o','k','r'].map(c=>`<div class="color-picker-swatch" style="background:#333;color:#ddd;width:auto;padding:0 6px;font-size:9px;" onclick="insertColorCode('${targetId}','${c}');document.getElementById('colorPickerPopup')?.remove();" title="§${c}">§${c}</div>`).join('')}</div>`;
-  document.body.appendChild(pop);
-  const inp=document.getElementById(targetId);
-  if(inp){const r=inp.getBoundingClientRect(); pop.style.left=r.left+'px'; pop.style.top=(r.bottom+4)+'px';}
-  setTimeout(()=>document.addEventListener('click',function h(e){if(!pop.contains(e.target)&&e.target.id!==targetId){pop.remove();document.removeEventListener('click',h);}},{once:false}),100);
-}
 
 // ══ KEYBOARD ══
 document.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!document.getElementById('loginOverlay').classList.contains('hidden')) doLogin(); });

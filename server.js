@@ -72,25 +72,6 @@ function generateSessionToken() { return crypto.randomBytes(32).toString('hex');
 const PORT = parseInt(process.env.PORT) || 3000;
 const SECRET_KEY = process.env.SECRET_KEY;
 
-// ========== AUDIT LOG ==========
-const auditLog = [];
-function addAuditLog(action, user, data = {}) {
-    const entry = {
-        timestamp: Date.now(),
-        time: new Date().toLocaleString('pt-BR'),
-        action, user,
-        ip: data.ip || null,
-        detail: data,
-    };
-    auditLog.push(entry);
-    if (auditLog.length > 500) auditLog.shift();
-    // Also write to file
-    try {
-        const logLine = `[${entry.time}] ${user} | ${action} | ${JSON.stringify(data)}\n`;
-        fs.appendFileSync(path.join(__dirname, 'data', 'audit.log'), logLine);
-    } catch {}
-}
-
 if (!SECRET_KEY) {
     console.error('❌ FATAL: SECRET_KEY não definida no .env!');
     console.error('Crie um arquivo .env com: SECRET_KEY=sua_chave_secreta');
@@ -175,9 +156,6 @@ function updateAdTimers() {
     const elapsed = now - lastBotOnlineCheck;
     lastBotOnlineCheck = now;
 
-    // FIX: ignorar elapsed negativo ou impossível (ex: após clock skew ou primeiro tick após reconnect)
-    if (elapsed <= 0 || elapsed > 60000) return;
-
     adsDB.forEach(ad => {
         if (ad.status === 'active' && ad.remainingMs > 0) {
             ad.remainingMs -= elapsed;
@@ -223,11 +201,19 @@ setInterval(savePlayersDB, 5 * 60 * 1000);
 
 // ========== SESSIONS ==========
 const sessions = new Map();
+const loginLog = []; // { username, role, ip, userAgent, type, timestamp }
+const MAX_LOGIN_LOG = 500;
 
-function createSession(userId, username, role, keyId = null) {
+function recordLogin(username, role, type, ip, userAgent) {
+    loginLog.push({ username, role, type, ip: ip||'?', userAgent: userAgent||'?', timestamp: Date.now() });
+    if (loginLog.length > MAX_LOGIN_LOG) loginLog.shift();
+}
+
+function createSession(userId, username, role, keyId = null, ip = null, userAgent = null) {
     const token = generateSessionToken();
     sessions.set(token, {
         userId, username, role, keyId,
+        ip: ip || '?', userAgent: userAgent || '?',
         expiresAt: Date.now() + SESSION_DURATION,
         createdAt: Date.now(),
     });
@@ -263,9 +249,8 @@ setInterval(savePersistedChat, 5 * 60 * 1000);
 
 // ========== RATE LIMITING ==========
 const rateLimits = new Map();
-function checkRateLimit(socketId, action, maxPerMinute = 30, ip = null) {
-    // FIX: usar IP quando disponível para evitar bypass via reconexão
-    const key = `${ip || socketId}:${action}`;
+function checkRateLimit(socketId, action, maxPerMinute = 30) {
+    const key = `${socketId}:${action}`;
     const now = Date.now();
     const entry = rateLimits.get(key) || { count: 0, resetAt: now + 60000 };
     if (now > entry.resetAt) { entry.count = 0; entry.resetAt = now + 60000; }
@@ -467,54 +452,64 @@ const MAX_LOGS = 200;
 
 let botData = {
     stats: { botsAtivos: 0, totalBots: 0, blacklistSize: 0, blacklistItems: [], tempBlacklistItems: [], mensagens: [], intervalo: 180, username: 'Anunciador', impressions: {}, silentServers: [] },
-    // chatDatabase referencia persistedChat diretamente — sem duplicação
-    bots: [], logs: [], chatDatabase: persistedChat, servers: [],
+    // IMPORTANTE: chatDatabase é uma cópia separada de persistedChat para evitar double-push
+    bots: [], logs: [], chatDatabase: [...persistedChat], servers: [],
     analytics: { playersOverTime: [], messagesPerHour: [], topServers: [] },
 };
 
 const serverLastSeen = {};
 
-// ========== DEDUP CHAT (corrige duplicação) ==========
+// ========== DEDUP CHAT (SoulFire-style sliding window) ==========
+// Usa conteúdo+autor+servidor como chave, com janela de tempo
+// Evita tanto duplicatas por timestamp quanto por reconexão do bot
 const recentMessageHashes = new Set();
-const MAX_HASH_CACHE = 20000; // FIX: aumentado para cobrir mais histórico
+const recentMessageTimes = new Map(); // hash -> timestamp
+const DEDUP_WINDOW_MS = 8000; // 8s — mesmo user/server/msg dentro de 8s = dup
+const MAX_HASH_CACHE = 5000;
 
 function getChatHash(msg) {
-    // Janela de 5min: duplicatas dentro de 5min com mesmo conteúdo são bloqueadas
-    const timeWindow = Math.floor((msg.timestamp || Date.now()) / 300000);
-    return `${timeWindow}-${msg.serverKey}-${(msg.username || '').substring(0, 16)}-${(msg.message || '').substring(0, 80)}`;
+    // Hash baseado em conteúdo, não timestamp — igual ao SoulFire
+    const user = (msg.username || '').toLowerCase().substring(0, 24);
+    const srv = (msg.serverKey || '').substring(0, 32);
+    const txt = (msg.message || '').substring(0, 60).toLowerCase().trim();
+    return `${user}|${srv}|${txt}`;
 }
 
 function isDuplicate(msg) {
     const hash = getChatHash(msg);
-    if (recentMessageHashes.has(hash)) return true;
+    const now = Date.now();
+    const lastSeen = recentMessageTimes.get(hash);
+    if (lastSeen && (now - lastSeen) < DEDUP_WINDOW_MS) return true;
+
+    recentMessageTimes.set(hash, now);
     recentMessageHashes.add(hash);
+
+    // Limpar cache antigo
     if (recentMessageHashes.size > MAX_HASH_CACHE) {
-        const first = recentMessageHashes.values().next().value;
-        recentMessageHashes.delete(first);
+        const expired = now - DEDUP_WINDOW_MS * 10;
+        for (const [h, t] of recentMessageTimes) {
+            if (t < expired) { recentMessageTimes.delete(h); recentMessageHashes.delete(h); }
+        }
     }
     return false;
+}
+
+function clearDedupCache() {
+    recentMessageHashes.clear();
+    recentMessageTimes.clear();
 }
 
 // ========== SERVER STATUS ==========
 function syncServerStatus() {
     const now = Date.now();
     const TIMEOUT = 120000;
-    const STALE_REMOVE = 24 * 60 * 60 * 1000; // remover servidores não vistos há 24h
     const botKeys = new Set(botData.bots.map(b => b.serverKey || b.server || b.key));
-
-    // Atualizar status e remover servidores muito antigos sem atividade
-    botData.servers = botData.servers.filter(s => {
-        const lastSeen = serverLastSeen[s.key] || s.lastSeen || 0;
-        // Remover se nunca teve bot E está abandonado há mais de 24h
-        if (!botKeys.has(s.key) && (now - lastSeen) > STALE_REMOVE) {
-            delete serverLastSeen[s.key];
-            return false;
-        }
+    botData.servers.forEach(s => {
+        const lastSeen = serverLastSeen[s.key] || 0;
         const hasBot = botKeys.has(s.key);
         const recent = (now - lastSeen) < TIMEOUT;
         const hasPlayers = s.players && s.players.length > 0;
         s.status = (hasBot || recent || hasPlayers) ? 'online' : 'offline';
-        return true;
     });
 }
 
@@ -583,47 +578,6 @@ function getTopServerChat() {
     };
 }
 
-// ========== EXPORT CSV ==========
-app.get('/export/players', (req, res) => {
-    // Requer autenticação via query param token
-    const token = req.query.token;
-    if (!token) { res.status(401).json({ error: 'Token obrigatório' }); return; }
-    const session = validateSession(token);
-    if (!session) { res.status(401).json({ error: 'Sessão inválida ou expirada' }); return; }
-
-    const players = Object.values(playersDB);
-    const lines = [
-        'username,firstSeen,lastSeen,messageCount,servers,toxicCount,spamCount,dominantCountry,sentimentPositive,sentimentNegative,sentimentNeutral,isInfluential,isSpammer,roles'
-    ];
-    players.forEach(p => {
-        const first = p.firstSeen ? new Date(p.firstSeen).toISOString() : '';
-        const last = p.lastSeen ? new Date(p.lastSeen).toISOString() : '';
-        const servers = (p.servers || []).join('|');
-        const roles = (p.roles || []).join('|');
-        const row = [
-            p.username || '',
-            first, last,
-            p.messageCount || 0,
-            servers,
-            p.toxicCount || 0,
-            p.spamCount || 0,
-            p.dominantCountry || '',
-            p.sentiment?.positive || 0,
-            p.sentiment?.negative || 0,
-            p.sentiment?.neutral || 0,
-            p.isInfluential ? 'true' : 'false',
-            p.isSpammer ? 'true' : 'false',
-            roles,
-        ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(',');
-        lines.push(row);
-    });
-
-    const csv = lines.join('\n');
-    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-    res.setHeader('Content-Disposition', `attachment; filename="players_${new Date().toISOString().split('T')[0]}.csv"`);
-    res.send('\uFEFF' + csv); // BOM para Excel reconhecer UTF-8
-});
-
 // ========== ROUTES ==========
 app.get('/', (req, res) => {
     const htmlPath = path.join(__dirname, 'index.html');
@@ -638,87 +592,6 @@ app.get('/health', (req, res) => {
         msgs: botData.chatDatabase.length, servers: botData.servers.length,
         memory: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`,
     });
-});
-
-// ========== EXPORT CSV ==========
-function jsonToCSV(rows, columns) {
-    const escape = v => {
-        const s = String(v ?? '').replace(/"/g, '""');
-        return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s}"` : s;
-    };
-    const header = columns.map(c => escape(c.label)).join(',');
-    const body = rows.map(row => columns.map(c => escape(row[c.key])).join(',')).join('\n');
-    return header + '\n' + body;
-}
-
-// Export players DB como CSV (requer autenticação via query param token)
-app.get('/export/players.csv', (req, res) => {
-    const token = req.query.token;
-    if (!token) { res.status(401).send('Token obrigatório'); return; }
-    const session = validateSession(token);
-    if (!session) { res.status(401).send('Token inválido ou expirado'); return; }
-
-    const players = Object.values(playersDB)
-        .sort((a, b) => (b.lastSeen || 0) - (a.lastSeen || 0))
-        .slice(0, 100000);
-
-    const columns = [
-        { key: 'username', label: 'Username' },
-        { key: 'messageCount', label: 'Mensagens' },
-        { key: 'servers', label: 'Servidores' },
-        { key: 'firstSeen', label: 'Primeira Vez' },
-        { key: 'lastSeen', label: 'Última Vez' },
-        { key: 'toxic', label: 'Tóxico' },
-        { key: 'sentimentPositive', label: 'Sentiment+' },
-        { key: 'sentimentNegative', label: 'Sentiment-' },
-        { key: 'peakHour', label: 'Hora Pico' },
-    ];
-
-    const rows = players.map(p => ({
-        username: p.username,
-        messageCount: p.messageCount || 0,
-        servers: (p.servers || []).join(';'),
-        firstSeen: p.firstSeen ? new Date(p.firstSeen).toISOString() : '',
-        lastSeen: p.lastSeen ? new Date(p.lastSeen).toISOString() : '',
-        toxic: p.toxic ? 'sim' : 'não',
-        sentimentPositive: p.sentiment?.positive || 0,
-        sentimentNegative: p.sentiment?.negative || 0,
-        peakHour: Object.entries(p.hoursActive || {}).sort((a, b) => b[1] - a[1])[0]?.[0] ?? '?',
-    }));
-
-    const csv = jsonToCSV(rows, columns);
-    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-    res.setHeader('Content-Disposition', `attachment; filename="players_${Date.now()}.csv"`);
-    res.send('\uFEFF' + csv); // BOM para Excel abrir com UTF-8
-});
-
-// Export chat como CSV
-app.get('/export/chat.csv', (req, res) => {
-    const token = req.query.token;
-    if (!token) { res.status(401).send('Token obrigatório'); return; }
-    const session = validateSession(token);
-    if (!session) { res.status(401).send('Token inválido ou expirado'); return; }
-
-    const serverFilter = req.query.server || null;
-    const limit = Math.min(parseInt(req.query.limit) || 10000, 50000);
-
-    let msgs = botData.chatDatabase;
-    if (serverFilter) msgs = msgs.filter(m => m.serverKey === serverFilter);
-    msgs = msgs.slice(-limit);
-
-    const columns = [
-        { key: 'date', label: 'Data' },
-        { key: 'time', label: 'Hora' },
-        { key: 'serverKey', label: 'Servidor' },
-        { key: 'username', label: 'Jogador' },
-        { key: 'message', label: 'Mensagem' },
-        { key: 'sentiment', label: 'Sentimento' },
-    ];
-
-    const csv = jsonToCSV(msgs, columns);
-    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-    res.setHeader('Content-Disposition', `attachment; filename="chat_${Date.now()}.csv"`);
-    res.send('\uFEFF' + csv);
 });
 
 // Endpoint de estatísticas detalhadas (não expõe dados sensíveis)
@@ -745,6 +618,34 @@ app.get('/stats', (req, res) => {
         timestamp: Date.now(),
     });
 });
+
+// Página de segurança — mostra quem conectou, de onde, etc.
+app.get('/user-info', (req, res) => {
+    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || '?';
+    const userAgent = req.headers['user-agent'] || '?';
+    const lang = req.headers['accept-language'] || '?';
+    const referer = req.headers['referer'] || '?';
+    const activeSessions = [];
+    sessions.forEach((s, token) => {
+        if (Date.now() < s.expiresAt) {
+            activeSessions.push({
+                username: s.username, role: s.role,
+                ip: s.ip || '?', userAgent: s.userAgent || '?',
+                createdAt: s.createdAt, expiresAt: s.expiresAt,
+            });
+        }
+    });
+    res.json({
+        yourRequest: { ip, userAgent, language: lang, referer },
+        activeSessions,
+        loginLog: loginLog.slice(-100),
+        serverTime: new Date().toISOString(),
+        uptime: getUptime(),
+        relayVersion: '9.0',
+        botOnline: !!botSocket,
+    });
+});
+
 
 // ========== AUTH ==========
 const authenticatedSockets = new Map();
@@ -782,10 +683,12 @@ io.on('connection', (socket) => {
                 data.chatDatabase.forEach(m => {
                     if (!isDuplicate(m)) {
                         botData.chatDatabase.push(m);
-                        // persistedChat === botData.chatDatabase agora, sem double-push
+                        persistedChat.push(m);
                     }
                 });
+                // Limitar tamanho (botData.chatDatabase e persistedChat agora são arrays separados)
                 if (botData.chatDatabase.length > MAX_CHAT_MESSAGES) botData.chatDatabase.splice(0, botData.chatDatabase.length - MAX_CHAT_MESSAGES);
+                if (persistedChat.length > MAX_CHAT_MESSAGES) persistedChat.splice(0, persistedChat.length - MAX_CHAT_MESSAGES);
             }
             if (Array.isArray(data.servers)) data.servers.forEach(processNewServer);
             syncServerStatus();
@@ -811,8 +714,10 @@ io.on('connection', (socket) => {
             }
 
             botData.chatDatabase.push(data);
-            // persistedChat === botData.chatDatabase, não precisamos fazer push separado
+            persistedChat.push(data);
+            // Trim usando splice (mais eficiente que reassign com slice)
             if (botData.chatDatabase.length > MAX_CHAT_MESSAGES) botData.chatDatabase.shift();
+            if (persistedChat.length > MAX_CHAT_MESSAGES) persistedChat.shift();
 
             observability.recordMessage();
             io.emit('chatMessage', data);
@@ -880,22 +785,26 @@ io.on('connection', (socket) => {
     socket.emit('requireAuth');
 
     socket.on('authenticate', ({ username, password }, callback) => {
-        if (!checkRateLimit(socket.id, 'auth', 10, socket.handshake.address)) {
+        if (!checkRateLimit(socket.id, 'auth', 10)) {
             if (typeof callback === 'function') callback({ success: false, error: 'Rate limit' });
             return;
         }
 
+        const ip = socket.handshake.headers['x-forwarded-for']?.split(',')[0]?.trim()
+            || socket.handshake.address || '?';
+        const userAgent = socket.handshake.headers['user-agent'] || '?';
+
         // Check users
         const user = usersDB.find(u => u.username === username);
         if (user && verifyPassword(password, user.passwordHash)) {
-            const token = createSession(user.id, user.username, user.role);
-            authenticatedSockets.set(socket.id, { username: user.username, role: user.role, sessionToken: token });
+            const token = createSession(user.id, user.username, user.role, null, ip, userAgent);
+            authenticatedSockets.set(socket.id, { username: user.username, role: user.role, sessionToken: token, ip, userAgent });
+            recordLogin(user.username, user.role, 'Sessão Iniciada', ip, userAgent);
             if (typeof callback === 'function') callback({ success: true, role: user.role, username: user.username, sessionToken: token });
             syncServerStatus();
             socket.emit('init', getInitData());
             socket.emit('botStatus', !!botSocket);
-            addAuditLog('login', user.username, { ip: socket.handshake.address, role: user.role });
-            console.log(`🔓 ${user.username} autenticou (${user.role})`);
+            console.log(`🔓 ${user.username} autenticou (${user.role}) de ${ip}`);
             return;
         }
 
@@ -908,16 +817,18 @@ io.on('connection', (socket) => {
                 if (typeof callback === 'function') callback({ success: false, error: 'Key expirada!' });
                 return;
             }
-            const token = createSession(key.id, key.label || 'Key User', 'client', key.id);
-            authenticatedSockets.set(socket.id, { username: key.label || 'Key User', role: 'client', sessionToken: token, keyId: key.id });
+            const token = createSession(key.id, key.label || 'Key User', 'client', key.id, ip, userAgent);
+            authenticatedSockets.set(socket.id, { username: key.label || 'Key User', role: 'client', sessionToken: token, keyId: key.id, ip, userAgent });
+            recordLogin(key.label || 'Key User', 'client', 'Login por API Key', ip, userAgent);
             if (typeof callback === 'function') callback({ success: true, role: 'client', username: key.label, sessionToken: token, keyData: { label: key.label, expiresAt: key.expiresAt, message: key.adMessage, remainingMs: getKeyAdRemaining(key.id) } });
             syncServerStatus();
             socket.emit('init', getInitData());
             socket.emit('botStatus', !!botSocket);
-            console.log(`🔑 Key login: ${key.label}`);
+            console.log(`🔑 Key login: ${key.label} de ${ip}`);
             return;
         }
 
+        recordLogin(username || '?', 'none', 'Falha de Login', ip, userAgent);
         if (typeof callback === 'function') callback({ success: false, error: 'Credenciais inválidas' });
     });
 
@@ -947,8 +858,10 @@ io.on('connection', (socket) => {
             if (!isAdmin(socket)) { socket.emit('toast', '⛔ Sem permissão!'); return; }
             if (!checkRateLimit(socket.id, cmd, cmd === 'refresh' ? 10 : 20)) { socket.emit('toast', '⏳ Aguarde...'); return; }
             if (cmd === 'clearChatDatabase') {
-                botData.chatDatabase.length = 0;  // limpa o array compartilhado (persistedChat também)
+                botData.chatDatabase.length = 0;  // manter referência, limpar conteúdo
+                persistedChat.length = 0;          // idem
                 recentMessageHashes.clear();
+                recentMessageTimes.clear();
                 savePersistedChat();
                 io.emit('chatMessages', []);
             }
@@ -1064,7 +977,7 @@ io.on('connection', (socket) => {
     // === VIEWER/DATA COMMANDS ===
     socket.on('getChatMessages', (f) => {
         if (!isAuthenticated(socket)) return;
-        if (!checkRateLimit(socket.id, 'getChatMessages', 15, socket.handshake.address)) return;
+        if (!checkRateLimit(socket.id, 'getChatMessages', 15)) return;
         let r = botData.chatDatabase;
         if (f?.serverKey && f.serverKey !== 'all') r = r.filter(m => m.serverKey === f.serverKey);
         if (f?.search) {
@@ -1109,33 +1022,10 @@ io.on('connection', (socket) => {
         socket.on(evt, (data) => { if (isAuthenticated(socket) && botSocket) botSocket.emit(evt, data); });
     });
 
-    // ══ botCommand: forward from dashboard Comandos tab ══
-    socket.on('botCommand', ({ target, command }) => {
-        if (!isAuthenticated(socket)) { socket.emit('toast', '⛔ Não autenticado!'); return; }
-        if (!isAdmin(socket)) { socket.emit('toast', '⛔ Sem permissão!'); return; }
-        if (!botSocket) { socket.emit('toast', '⚠️ Bot offline!'); return; }
-        const user = sessions.get(socket.data?.sessionToken || '')?.username || 'unknown';
-        addAuditLog('botCommand', user, { target, command });
-        botSocket.emit('botCommand', { target, command });
-    });
-
-    // ══ sendChat: forward direct message ══
-    socket.on('sendChat', ({ server, message }) => {
-        if (!isAuthenticated(socket)) return;
-        if (!isAdmin(socket)) { socket.emit('toast', '⛔ Sem permissão!'); return; }
-        if (!botSocket) { socket.emit('toast', '⚠️ Bot offline!'); return; }
-        botSocket.emit('chat', { serverKey: server || 'all', message });
-    });
-
     socket.on('restartBotProcess', () => {
         if (!isAdmin(socket)) { socket.emit('toast', '⛔ Sem permissão!'); return; }
         if (botSocket) { botSocket.emit('restartBotProcess'); socket.emit('toast', '🔄 Reinício enviado!'); }
         else socket.emit('toast', '⚠️ Bot offline!');
-    });
-
-    socket.on('getAuditLog', (callback) => {
-        if (!isAdmin(socket)) { if(typeof callback==='function') callback([]); return; }
-        if (typeof callback === 'function') callback(auditLog.slice(-200).reverse());
     });
 
     socket.on('getFullChat', () => { if (isAuthenticated(socket)) socket.emit('fullChat', botData.chatDatabase); });
@@ -1143,41 +1033,7 @@ io.on('connection', (socket) => {
         if (isAuthenticated(socket)) socket.emit('chatDownload', { exportadoEm: new Date().toISOString(), totalMensagens: botData.chatDatabase.length, mensagens: botData.chatDatabase });
     });
 
-    // FIX: gerar token de sessão para download CSV via URL
-    socket.on('getExportToken', (callback) => {
-        if (!isAuthenticated(socket)) { if (typeof callback === 'function') callback({ error: 'Não autenticado' }); return; }
-        const auth = authenticatedSockets.get(socket.id);
-        if (!auth?.sessionToken) { if (typeof callback === 'function') callback({ error: 'Sem sessão' }); return; }
-        if (typeof callback === 'function') callback({ token: auth.sessionToken });
-    });
-
-    socket.on('exportPlayersCSV', (callback) => {
-        if (!isAuthenticated(socket)) return;
-        const players = Object.values(playersDB);
-        const lines = [
-            'username,firstSeen,lastSeen,messageCount,servers,toxicCount,spamCount,dominantCountry,sentimentPositive,sentimentNegative,sentimentNeutral,isInfluential,isSpammer,roles'
-        ];
-        players.forEach(p => {
-            const first = p.firstSeen ? new Date(p.firstSeen).toISOString() : '';
-            const last = p.lastSeen ? new Date(p.lastSeen).toISOString() : '';
-            const row = [
-                p.username || '', first, last,
-                p.messageCount || 0,
-                (p.servers || []).join('|'),
-                p.toxicCount || 0, p.spamCount || 0,
-                p.dominantCountry || '',
-                p.sentiment?.positive || 0, p.sentiment?.negative || 0, p.sentiment?.neutral || 0,
-                p.isInfluential ? 'true' : 'false',
-                p.isSpammer ? 'true' : 'false',
-                (p.roles || []).join('|'),
-            ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(',');
-            lines.push(row);
-        });
-        const csv = '\uFEFF' + lines.join('\n');
-        if (typeof callback === 'function') callback({ csv, total: players.length });
-        else socket.emit('playersCSV', { csv, total: players.length });
-    });
-
+    // Players DB
     socket.on('getPlayersDB', (filter, callback) => {
         if (!isAuthenticated(socket)) return;
         let players = Object.values(playersDB);
@@ -1218,6 +1074,30 @@ io.on('connection', (socket) => {
             country: s.country || null, heatmap: s.heatmap || {},
             peakPlayers: s.peakPlayers || 0,
         })));
+    });
+
+    // ========== BOT CONFIG ==========
+    socket.on('setBotConfig', ({ key, value }, callback) => {
+        if (!isAuthenticated(socket)) { if (typeof callback === 'function') callback({ success: false, error: 'Não autenticado' }); return; }
+        if (!isAdmin(socket)) { if (typeof callback === 'function') callback({ success: false, error: 'Sem permissão' }); return; }
+        if (botData.stats) botData.stats[key] = value;
+        if (botSocket) {
+            botSocket.emit('setBotConfig', { key, value });
+            socket.emit('toast', `⚙️ ${key}: ${value ? '✅ ativado' : '❌ desativado'}`);
+        } else {
+            socket.emit('toast', `⚠️ Bot offline — config salva localmente`);
+        }
+        if (typeof callback === 'function') callback({ success: true });
+    });
+
+    socket.on('getConfig', (callback) => {
+        if (!isAuthenticated(socket)) { if (typeof callback === 'function') callback(null); return; }
+        if (typeof callback === 'function') callback(botData.stats || {});
+    });
+
+    socket.on('getLoginLog', (callback) => {
+        if (!isAdmin(socket)) { if (typeof callback === 'function') callback([]); return; }
+        if (typeof callback === 'function') callback(loginLog.slice(-200));
     });
 
     socket.on('disconnect', () => authenticatedSockets.delete(socket.id));
