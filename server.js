@@ -204,6 +204,16 @@ const sessions = new Map();
 const loginLog = []; // { username, role, ip, userAgent, type, timestamp }
 const MAX_LOGIN_LOG = 500;
 
+function maskIp(ip) {
+    if (!ip || ip === '?') return '?';
+    // IPv4: mostra apenas 2 primeiros octetos
+    const v4 = ip.match(/^(\d+\.\d+)\.\d+\.\d+$/);
+    if (v4) return `${v4[1]}.xxx.xxx`;
+    const v6 = ip.split(':');
+    if (v6.length > 4) return `${v6[0]}:${v6[1]}:xxxx:xxxx`;
+    return ip.substring(0, 6) + '...';
+}
+
 function recordLogin(username, role, type, ip, userAgent) {
     loginLog.push({ username, role, type, ip: ip||'?', userAgent: userAgent||'?', timestamp: Date.now() });
     if (loginLog.length > MAX_LOGIN_LOG) loginLog.shift();
@@ -619,26 +629,22 @@ app.get('/stats', (req, res) => {
     });
 });
 
-// Página de segurança — mostra quem conectou, de onde, etc.
+// Página de segurança — mostra sua própria conexão
+// O loginLog com detalhes é acessível apenas via socket autenticado (getLoginLog)
 app.get('/user-info', (req, res) => {
     const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || '?';
     const userAgent = req.headers['user-agent'] || '?';
     const lang = req.headers['accept-language'] || '?';
-    const referer = req.headers['referer'] || '?';
     const activeSessions = [];
-    sessions.forEach((s, token) => {
+    sessions.forEach((s) => {
         if (Date.now() < s.expiresAt) {
-            activeSessions.push({
-                username: s.username, role: s.role,
-                ip: s.ip || '?', userAgent: s.userAgent || '?',
-                createdAt: s.createdAt, expiresAt: s.expiresAt,
-            });
+            // Nunca expõe IP nem UA de outras sessões
+            activeSessions.push({ username: s.username, role: s.role });
         }
     });
     res.json({
-        yourRequest: { ip, userAgent, language: lang, referer },
+        yourRequest: { ip, userAgent, language: lang },
         activeSessions,
-        loginLog: loginLog.slice(-100),
         serverTime: new Date().toISOString(),
         uptime: getUptime(),
         relayVersion: '9.0',
@@ -1097,7 +1103,19 @@ io.on('connection', (socket) => {
 
     socket.on('getLoginLog', (callback) => {
         if (!isAdmin(socket)) { if (typeof callback === 'function') callback([]); return; }
-        if (typeof callback === 'function') callback(loginLog.slice(-200));
+        // Retorna com IPs mascarados pra não expor dados sensíveis no dashboard
+        const masked = loginLog.slice(-200).map(e => ({
+            ...e,
+            ip: maskIp(e.ip),
+            userAgent: (e.userAgent || '').substring(0, 80),
+        }));
+        if (typeof callback === 'function') callback(masked);
+    });
+
+    socket.on('clearLoginLog', () => {
+        if (!isAdmin(socket)) return;
+        loginLog.length = 0;
+        socket.emit('toast', '🗑️ Log de acessos limpo');
     });
 
     socket.on('disconnect', () => authenticatedSockets.delete(socket.id));

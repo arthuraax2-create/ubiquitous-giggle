@@ -495,15 +495,7 @@ select.inp{cursor:pointer;}
     <header class="topbar">
       <div class="topbar-title-wrap">
         <div id="pageTitle">Dashboard</div>
-        <div class="tb-sub" id="tbSub">—</div>
       </div>
-      <div class="tb-live">
-        <div class="tb-ldot status-dot offline" id="botDot" style="width:8px;height:8px;"></div>
-        <span id="botText" style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--text-muted)">Offline</span>
-      </div>
-      <div class="tb-sep"></div>
-      <button class="btn sm admin-only" onclick="cmd('announce')">Anunciar</button>
-      <button class="btn sm primary admin-only" onclick="connectSrv()">+ Conectar</button>
     </header>
 
     <div class="content">
@@ -629,7 +621,8 @@ select.inp{cursor:pointer;}
       <div class="page" id="p-security">
         <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
           <button class="btn sm" onclick="loadSecurity()">Atualizar</button>
-          <a class="btn sm" href="/user-info" target="_blank" style="text-decoration:none;">Ver JSON bruto</a>
+          <a id="secJsonLink" class="btn sm" href="/user-info" target="_blank" style="text-decoration:none;">Ver JSON bruto</a>
+          <button class="btn sm" style="background:rgba(239,68,68,0.15);border-color:rgba(239,68,68,0.3);color:#ef4444;" onclick="clearSecLog()">Limpar Log</button>
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-bottom:16px;" id="secInfoGrid">
           <div style="color:var(--text-muted);font-size:12px;">Carregando...</div>
@@ -778,9 +771,8 @@ function doLogin(){
         roleEl.textContent=rl; roleEl.className='role-badge '+r.role;
         document.getElementById('setRole').textContent=rl;
         document.getElementById('setRelay').textContent=RELAY;
-        document.getElementById('tbSub').textContent=currentUser+' · '+r.role;
         applyPerms(); startKeepAlive(); startPeriodicIntervals();
-        toast('Login realizado — '+currentUser);
+        toast('Login realizado');
         if(r.role==='client'&&r.keyData) showClientInfo(r.keyData);
       }else{
         showLoginError(r.error||'Credenciais inválidas.');
@@ -1340,62 +1332,169 @@ function copyKey(k){
 function fallbackCopy(text){ const ta=document.createElement('textarea'); ta.value=text; ta.style.cssText='position:fixed;opacity:0;top:0;left:0;'; document.body.appendChild(ta); ta.focus(); ta.select(); try{ document.execCommand('copy'); toast('Copiada!'); } catch(e){ toast('Use HTTPS para copiar.'); } document.body.removeChild(ta); }
 
 // ══ PLUGINS ══
+// Tipos de campo: boolean (toggle), number (input), text (input), select (dropdown), textarea
 const PLUGIN_DEFS = [
-  { id:'ai-chat-bot',    cfg:'ai_chat_enabled',     desc:'Usa Claude API para responder menções com IA (requer ANTHROPIC_API_KEY no .env)' },
-  { id:'client-brand',   cfg:'client_brand',         desc:'Brand enviado ao servidor (vanilla, fabric, forge) — afeta detecção do servidor' },
-  { id:'auto-totem',     cfg:'auto_totem',           desc:'Equipa totem de imortalidade na mão auxiliar automaticamente' },
-  { id:'auto-register',  cfg:'auto_register',        desc:'Registra e faz login automaticamente em servidores AuthMe' },
-  { id:'anti-afk',       cfg:'anti_afk',           desc:'Move x blocos aleatoriamente para evitar kick por AFK' },
-  { id:'auto-armor',     cfg:'auto_armor',          desc:'Equipa automaticamente a melhor armadura disponível' },
-  { id:'auto-eat',       cfg:'auto_eat',            desc:'Come automaticamente quando com fome' },
-  { id:'auto-collect',   cfg:'auto_collect',        desc:'Coleta itens do chão automaticamente' },
-  { id:'auto-sleep',     cfg:'auto_sleep',          desc:'Dorme automaticamente quando disponível' },
-  { id:'auto-fish',      cfg:'auto_fish',           desc:'Pesca automaticamente quando possível' },
-  { id:'mining-enabled', cfg:'mining_enabled',      desc:'Permite comandos de mineração (!minerar)' },
-  { id:'greet-players',  cfg:'greet_players',       desc:'Saúda jogadores que entram no servidor' },
-  { id:'respond-mentions',cfg:'respond_mentions',   desc:'Responde quando mencionado no chat' },
-  { id:'vary-messages',  cfg:'vary_messages',       desc:'Varia os anúncios para parecer mais humano' },
-  { id:'rotate-names',   cfg:'rotate_names',        desc:'Rotaciona os usernames dos bots' },
-  { id:'anti-bot-detection',cfg:'anti_bot_detection',desc:'Técnicas anti-detecção de bot (timing humano, typos)' },
-  { id:'human-timing',   cfg:'human_timing',        desc:'Delays aleatórios para simular digitação humana' },
-  { id:'flee-mobs',      cfg:'flee_mobs',           desc:'Foge automaticamente de mobs perigosos' },
-  { id:'dodge-projectiles',cfg:'dodge_projectiles', desc:'Tenta desviar de projéteis' },
-  { id:'avoid-hazards',  cfg:'avoid_hazards',       desc:'Evita hazards como lava, vazio e fogo' },
-  { id:'prime-time-boost',cfg:'prime_time_boost',   desc:'Aumenta frequência de anúncios no horário de pico' },
-  { id:'pause-if-empty', cfg:'pause_if_empty',      desc:'Pausa anúncios quando servidor está vazio' },
-  { id:'spam-detection', cfg:'spam_detection',      desc:'Detecta spam de outros jogadores/bots' },
-  { id:'cheater-detection',cfg:'cheater_detection', desc:'Detecta possíveis cheaters por padrões de jogo' },
-  { id:'sentiment-analysis',cfg:'sentiment_analysis',desc:'Analisa o sentimento das mensagens do chat' },
-  { id:'player-tracking',cfg:'player_tracking',     desc:'Rastreia entrada/saída e comportamento de players' },
-  { id:'server-health-monitor',cfg:'server_health_monitor',desc:'Monitora saúde e performance dos servidores' },
-  { id:'self-healing',   cfg:'self_healing',        desc:'Auto-reconecta e reinicia bots com problemas' },
-  { id:'tab-complete-exploit',cfg:'tab_complete_exploit',desc:'Usa tab-complete para enumerar players/comandos' },
-  { id:'detect-vulnerabilities',cfg:'detect_vulnerabilities',desc:'Detecta vulnerabilidades nos servidores conectados' },
-  { id:'impressions-tracking',cfg:'impressions_tracking',desc:'Rastreia impressões de anúncios por servidor' },
-  { id:'ping-offline',   cfg:'ping_offline_servers',desc:'Pinga servidores offline para reconectar quando disponível' },
-  { id:'ban-rename',     cfg:'ban_rename',          desc:'Renomeia bot automaticamente após ban' },
-  { id:'open-chests',    cfg:'open_chests',         desc:'Abre baús para explorar conteúdo' },
-  { id:'viewer',         cfg:'viewer_enabled',      desc:'Habilita o viewer 3D do bot via prismarine-web-client' },
-  { id:'backup-saves',   cfg:'backup_before_save',  desc:'Cria backup antes de salvar arquivos de dados' },
-  { id:'error-log',      cfg:'error_log_file',      desc:'Salva erros em arquivo de log separado' },
-  { id:'debug',          cfg:'debug',               desc:'Modo debug — logs detalhados no console' },
+  { id:'ai-chat-bot',    cfg:'ai_chat_enabled',     type:'boolean', desc:'Usa Claude API para responder menções (requer ANTHROPIC_API_KEY no .env)' },
+  { id:'ai-chat-context',cfg:'ai_chat_context',     type:'textarea',desc:'Prompt de sistema para o AI Chat Bot', label:'Contexto AI' },
+  { id:'client-brand',   cfg:'client_brand',        type:'select',  opts:['vanilla','fabric','forge','quilt'], desc:'Brand enviado ao servidor (afeta detecção)' },
+  { id:'auto-totem',     cfg:'auto_totem',          type:'boolean', desc:'Equipa totem na mão auxiliar automaticamente' },
+  { id:'auto-register',  cfg:'auto_register',       type:'boolean', desc:'Registra/loga automaticamente em servidores AuthMe' },
+  { id:'auto-register-pass',cfg:'auto_register_password',type:'text',desc:'Senha usada no auto-register', label:'Senha AuthMe' },
+  { id:'anti-afk',       cfg:'anti_afk',            type:'boolean', desc:'Move aleatoriamente para evitar kick por AFK' },
+  { id:'auto-armor',     cfg:'auto_armor',          type:'boolean', desc:'Equipa automaticamente a melhor armadura disponível' },
+  { id:'auto-eat',       cfg:'auto_eat',            type:'boolean', desc:'Come automaticamente quando com fome' },
+  { id:'auto-collect',   cfg:'auto_collect',        type:'boolean', desc:'Coleta itens do chão automaticamente' },
+  { id:'auto-sleep',     cfg:'auto_sleep',          type:'boolean', desc:'Dorme automaticamente quando disponível' },
+  { id:'auto-fish',      cfg:'auto_fish',           type:'boolean', desc:'Pesca automaticamente quando possível' },
+  { id:'mining-enabled', cfg:'mining_enabled',      type:'boolean', desc:'Permite comandos de mineração (!minerar)' },
+  { id:'greet-players',  cfg:'greet_players',       type:'boolean', desc:'Saúda jogadores que entram no servidor' },
+  { id:'respond-mentions',cfg:'respond_mentions',   type:'boolean', desc:'Responde quando mencionado no chat' },
+  { id:'vary-messages',  cfg:'vary_messages',       type:'boolean', desc:'Varia os anúncios para parecer mais humano' },
+  { id:'rotate-names',   cfg:'rotate_names',        type:'boolean', desc:'Rotaciona os usernames dos bots' },
+  { id:'anti-bot-detection',cfg:'anti_bot_detection',type:'boolean',desc:'Técnicas anti-detecção (timing, typos)' },
+  { id:'typo-chance',    cfg:'typo_chance',         type:'number',  min:0, max:1, step:0.01, desc:'Chance de typos na escrita (0 = nenhum, 1 = sempre)', label:'Chance de typo' },
+  { id:'human-timing',   cfg:'human_timing',        type:'boolean', desc:'Delays aleatórios simulando digitação humana' },
+  { id:'intervalo-anuncio',cfg:'intervalo_anuncio', type:'number',  min:10, max:3600, step:1, desc:'Intervalo entre anúncios em segundos', label:'Intervalo (s)' },
+  { id:'max-bots',       cfg:'max_bots_simultaneos',type:'number',  min:1, max:200, step:1, desc:'Máximo de bots simultâneos', label:'Máx. bots' },
+  { id:'flee-mobs',      cfg:'flee_mobs',           type:'boolean', desc:'Foge automaticamente de mobs perigosos' },
+  { id:'dodge-projectiles',cfg:'dodge_projectiles', type:'boolean', desc:'Tenta desviar de projéteis' },
+  { id:'avoid-hazards',  cfg:'avoid_hazards',       type:'boolean', desc:'Evita lava, vazio e fogo' },
+  { id:'prime-time-boost',cfg:'prime_time_boost',   type:'boolean', desc:'Aumenta frequência de anúncios no horário de pico' },
+  { id:'prime-time-min', cfg:'prime_time_min_players',type:'number',min:1,max:100,step:1,desc:'Mín. de players para considerar horário de pico',label:'Min. players pico' },
+  { id:'pause-if-empty', cfg:'pause_if_empty',      type:'boolean', desc:'Pausa anúncios quando servidor está vazio' },
+  { id:'spam-detection', cfg:'spam_detection',      type:'boolean', desc:'Detecta spam de outros jogadores/bots' },
+  { id:'spam-threshold', cfg:'spam_threshold',      type:'number',  min:2, max:50, step:1, desc:'Mensagens para detectar spam', label:'Limiar spam' },
+  { id:'cheater-detection',cfg:'cheater_detection', type:'boolean', desc:'Detecta possíveis cheaters por padrões' },
+  { id:'sentiment-analysis',cfg:'sentiment_analysis',type:'boolean',desc:'Analisa sentimento das mensagens do chat' },
+  { id:'player-tracking',cfg:'player_tracking',     type:'boolean', desc:'Rastreia entrada/saída de players' },
+  { id:'server-health',  cfg:'server_health_monitor',type:'boolean',desc:'Monitora saúde e performance dos servidores' },
+  { id:'self-healing',   cfg:'self_healing',        type:'boolean', desc:'Auto-reconecta e reinicia bots com problemas' },
+  { id:'ping-offline',   cfg:'ping_offline_servers',type:'boolean', desc:'Pinga servidores offline para reconectar' },
+  { id:'ping-interval',  cfg:'ping_offline_interval',type:'number', min:10000,max:600000,step:1000,desc:'Intervalo de ping offline (ms)',label:'Intervalo ping (ms)' },
+  { id:'tab-complete',   cfg:'tab_complete_exploit', type:'boolean',desc:'Tab-complete para enumerar players/comandos' },
+  { id:'detect-vulns',   cfg:'detect_vulnerabilities',type:'boolean',desc:'Detecta vulnerabilidades nos servidores' },
+  { id:'ban-rename',     cfg:'ban_rename',          type:'boolean', desc:'Renomeia bot automaticamente após ban' },
+  { id:'ban-retry-delay',cfg:'ban_retry_delay',     type:'number',  min:1000,max:60000,step:500,desc:'Delay antes de tentar reconectar após ban (ms)',label:'Ban retry delay (ms)' },
+  { id:'viewer',         cfg:'viewer_enabled',      type:'boolean', desc:'Viewer 3D do bot via prismarine-web-client' },
+  { id:'viewer-port',    cfg:'viewer_port',         type:'number',  min:3000,max:9999,step:1,desc:'Porta do viewer 3D',label:'Porta viewer' },
+  { id:'open-chests',    cfg:'open_chests',         type:'boolean', desc:'Abre baús para explorar conteúdo' },
+  { id:'memory-limit',   cfg:'memory_limit_mb',     type:'number',  min:100,max:2000,step:50,desc:'Limite de memória em MB',label:'Limite RAM (MB)' },
+  { id:'backup-saves',   cfg:'backup_before_save',  type:'boolean', desc:'Cria backup antes de salvar arquivos' },
+  { id:'debug',          cfg:'debug',               type:'boolean', desc:'Modo debug — logs detalhados no console' },
 ];
 
+function getPluginCfgVal(cfg, p) {
+  if (!cfg) return p.type === 'boolean' ? false : (p.type === 'number' ? 0 : '');
+  return cfg[p.cfg] !== undefined ? cfg[p.cfg] : (p.type === 'boolean' ? false : (p.type === 'number' ? 0 : ''));
+}
+
+function renderPlugins(cfg) {
+  const grid = document.getElementById('pluginGrid');
+  const isA = currentRole === 'admin';
+  const hasData = !!cfg;
+
+  // Group by category
+  const booleans = PLUGIN_DEFS.filter(p => p.type === 'boolean');
+  const configs = PLUGIN_DEFS.filter(p => p.type !== 'boolean');
+
+  let html = '';
+
+  // Config inputs section
+  if (configs.length) {
+    html += `<div style="grid-column:1/-1;margin-bottom:6px;">
+      <div style="font-size:10px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">⚙ Configurações</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px;">`;
+    configs.forEach(p => {
+      const val = getPluginCfgVal(cfg, p);
+      const label = p.label || p.id;
+      const inputId = `pcfg_${p.cfg}`;
+      let inputHtml = '';
+      if (p.type === 'number') {
+        inputHtml = `<input type="number" id="${inputId}" class="inp" min="${p.min||0}" max="${p.max||9999}" step="${p.step||1}" value="${val||p.min||0}" style="flex:1;padding:4px 8px;font-size:11px;font-family:'JetBrains Mono',monospace;" ${!isA||!hasData?'disabled':''} onkeydown="if(event.key==='Enter')savePluginCfg('${p.cfg}',document.getElementById('${inputId}').value*1)">
+          <button class="btn sm primary" onclick="savePluginCfg('${p.cfg}',document.getElementById('${inputId}').value*1)" ${!isA||!hasData?'disabled':''} style="padding:4px 10px;font-size:11px;">Salvar</button>`;
+      } else if (p.type === 'select') {
+        inputHtml = `<select id="${inputId}" class="inp" style="flex:1;padding:4px 8px;font-size:11px;" ${!isA||!hasData?'disabled':''}>
+            ${(p.opts||[]).map(o=>`<option value="${o}"${val===o?' selected':''}>${o}</option>`).join('')}
+          </select>
+          <button class="btn sm primary" onclick="savePluginCfg('${p.cfg}',document.getElementById('${inputId}').value)" ${!isA||!hasData?'disabled':''} style="padding:4px 10px;font-size:11px;">Salvar</button>`;
+      } else if (p.type === 'textarea') {
+        inputHtml = `</div>
+          <textarea id="${inputId}" class="inp" rows="3" style="width:100%;font-size:10px;font-family:'JetBrains Mono',monospace;resize:vertical;" ${!isA||!hasData?'disabled':''}>${esc(String(val||''))}</textarea>
+          <button class="btn sm primary" style="margin-top:4px;padding:4px 10px;font-size:11px;" onclick="savePluginCfg('${p.cfg}',document.getElementById('${inputId}').value)" ${!isA||!hasData?'disabled':''}>Salvar</button>
+          <div style="display:none">`;
+      } else {
+        inputHtml = `<input type="text" id="${inputId}" class="inp" value="${esc(String(val||''))}" style="flex:1;padding:4px 8px;font-size:11px;font-family:'JetBrains Mono',monospace;" ${!isA||!hasData?'disabled':''} onkeydown="if(event.key==='Enter')savePluginCfg('${p.cfg}',document.getElementById('${inputId}').value)">
+          <button class="btn sm primary" onclick="savePluginCfg('${p.cfg}',document.getElementById('${inputId}').value)" ${!isA||!hasData?'disabled':''} style="padding:4px 10px;font-size:11px;">Salvar</button>`;
+      }
+      html += `<div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;padding:11px 13px;">
+        <div style="font-size:10px;color:var(--cyan);font-family:'JetBrains Mono',monospace;margin-bottom:6px;">${esc(label)}</div>
+        <div style="font-size:10px;color:var(--text-muted);margin-bottom:8px;">${esc(p.desc)}</div>
+        <div style="display:flex;gap:6px;align-items:center;">${inputHtml}</div>
+      </div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  // Toggle plugins
+  html += `<div style="grid-column:1/-1;margin-bottom:6px;">
+    <div style="font-size:10px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">⚡ Módulos</div>
+  </div>`;
+  booleans.forEach(p => {
+    const enabled = hasData ? !!getPluginCfgVal(cfg, p) : false;
+    html += `<div class="plugin-card${enabled?' enabled':''}">
+      <div class="plugin-info">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+          <span class="plugin-id">${p.id}</span>
+        </div>
+        <div class="plugin-desc">${p.desc}</div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;">
+          <span style="font-size:9px;background:var(--bg);border:1px solid var(--border);padding:1px 6px;border-radius:3px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;">v1.0</span>
+          <span style="font-size:9px;background:var(--bg);border:1px solid var(--border);padding:1px 6px;border-radius:3px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;">SØLV3R</span>
+        </div>
+      </div>
+      <button class="plugin-tog${enabled?' on':''}"
+        ${!isA||!hasData?'disabled':''}
+        onclick="togglePlugin('${p.cfg}',${!enabled})"
+        title="${enabled?'Desativar':'Ativar'}"></button>
+    </div>`;
+  });
+
+  grid.innerHTML = html;
+}
+
+function savePluginCfg(key, val) {
+  if(currentRole!=='admin') return;
+  if(!socket?.connected) { toast('Socket desconectado'); return; }
+  socket.emit('setBotConfig', {key, value: val}, (r) => {
+    if(r?.success) {
+      if(!stats.pluginConfig) stats.pluginConfig = {};
+      stats.pluginConfig[key] = val;
+      toast(`✅ ${key} salvo`);
+    } else {
+      toast('❌ Erro ao salvar');
+    }
+  });
+}
+
 // ══ SECURITY PAGE ══
+function maskDisplayIp(ip) {
+  if (!ip || ip === '?') return '?';
+  const v4 = ip.match(/^(\d+\.\d+)\.\d+\.\d+$/);
+  if (v4) return `${v4[1]}.xxx.xxx`;
+  return ip.substring(0, 8) + '...';
+}
+
 function loadSecurity() {
   if(!socket?.connected) return;
-  socket.emit('getLoginLog', (log) => {
-    renderSecurityLog(log||[]);
-  });
-  // Also fetch /user-info for our own connection info
+  socket.emit('getLoginLog', (log) => { renderSecurityLog(log||[]); });
   fetch('/user-info').then(r=>r.json()).then(d => {
     const grid = document.getElementById('secInfoGrid');
     const sessions = d.activeSessions||[];
     grid.innerHTML = `
       <div class="panel" style="padding:12px 14px;">
         <div class="panel-h" style="margin-bottom:8px;">Sua Conexão</div>
-        ${secInfoRow('IP',d.yourRequest?.ip)}
-        ${secInfoRow('User-Agent',d.yourRequest?.userAgent?.substring(0,80))}
+        ${secInfoRow('IP', d.yourRequest?.ip||'—')}
+        ${secInfoRow('User-Agent',(d.yourRequest?.userAgent||'').substring(0,70))}
         ${secInfoRow('Idioma',d.yourRequest?.language?.substring(0,30))}
       </div>
       <div class="panel" style="padding:12px 14px;">
@@ -1411,12 +1510,16 @@ function loadSecurity() {
         ${sessions.length?sessions.map(s=>`
           <div style="font-size:11px;border-bottom:1px solid var(--border);padding:5px 0;font-family:'JetBrains Mono',monospace;">
             <span style="color:var(--cyan)">${esc(s.username)}</span>
-            <span style="color:var(--text-muted);margin-left:6px;">${esc(s.role)}</span>
-            <span style="color:var(--text-dim);margin-left:6px;">${esc(s.ip)}</span>
-            <div style="color:var(--text-muted);font-size:10px;margin-top:2px;">${esc((s.userAgent||'').substring(0,60))}</div>
+            <span style="color:var(--text-muted);margin-left:8px;">${esc(s.role)}</span>
           </div>`).join('') : '<div style="color:var(--text-muted);font-size:11px;">Nenhuma sessão ativa</div>'}
       </div>`;
   }).catch(()=>{});
+}
+
+function clearSecLog() {
+  if(!socket?.connected) return;
+  socket.emit('clearLoginLog');
+  setTimeout(()=>{ document.getElementById('secLoginLog').innerHTML='<div style="color:var(--text-muted);font-size:12px;">Log limpo.</div>'; }, 300);
 }
 
 function secInfoRow(label, val) {
@@ -1435,13 +1538,11 @@ function renderSecurityLog(log) {
     const isFail = e.type==='Falha de Login';
     const color = isFail?'var(--red)': isOk?'var(--green)':'var(--text-dim)';
     const dt = new Date(e.timestamp).toLocaleString('pt-BR');
-    return `<div style="display:flex;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px;font-family:'JetBrains Mono',monospace;flex-wrap:wrap;">
+    return `<div style="display:flex;gap:12px;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px;font-family:'JetBrains Mono',monospace;flex-wrap:wrap;align-items:center;">
       <span style="color:${color};min-width:140px;">${esc(e.type)}</span>
       <span style="color:var(--cyan);min-width:80px;">${esc(e.username||'?')}</span>
       <span style="color:var(--text-muted);min-width:60px;">${esc(e.role||'?')}</span>
-      <span style="color:var(--yellow);min-width:100px;">${esc(e.ip||'?')}</span>
-      <span style="color:var(--text-muted);flex:1;">${esc((e.userAgent||'').substring(0,60))}</span>
-      <span style="color:var(--text-dim);white-space:nowrap;">${dt}</span>
+      <span style="color:var(--text-dim);margin-left:auto;white-space:nowrap;">${dt}</span>
     </div>`;
   }).join('');
 }
@@ -1458,32 +1559,6 @@ function refreshPlugins() {
   }
 }
 
-function renderPlugins(cfg) {
-  const grid = document.getElementById('pluginGrid');
-  const isA = currentRole === 'admin';
-  grid.innerHTML = PLUGIN_DEFS.map(p => {
-    const enabled = cfg ? (cfg[p.cfg] !== undefined ? !!cfg[p.cfg] : false) : false;
-    const hasData = !!cfg;
-    return `<div class="plugin-card${enabled ? ' enabled' : ''}">
-      <div class="plugin-info">
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">
-          <span class="plugin-id">${p.id}</span>
-        </div>
-        <div class="plugin-desc">${p.desc}</div>
-        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:7px;">
-          <span style="font-size:9px;background:var(--bg);border:1px solid var(--border);padding:1px 6px;border-radius:3px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;">v1.0.0</span>
-          <span style="font-size:9px;background:var(--bg);border:1px solid var(--border);padding:1px 6px;border-radius:3px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;">SØLV3R</span>
-          <span style="font-size:9px;background:var(--bg);border:1px solid var(--border);padding:1px 6px;border-radius:3px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;">${p.cfg}</span>
-        </div>
-      </div>
-      <button class="plugin-tog${enabled?' on':''}"
-        ${!isA||!hasData?'disabled':''}
-        onclick="togglePlugin('${p.cfg}',${!enabled})"
-        title="${enabled?'Desativar':'Ativar'}"></button>
-    </div>`;
-  }).join('');
-}
-
 function togglePlugin(key, val) {
   if(currentRole!=='admin') return;
   if(!socket?.connected) { toast('Socket desconectado'); return; }
@@ -1492,9 +1567,9 @@ function togglePlugin(key, val) {
       if(!stats.pluginConfig) stats.pluginConfig = {};
       stats.pluginConfig[key] = val;
       renderPlugins(stats.pluginConfig);
-      toast(`${key}: ${val ? 'Ativado' : 'Desativado'}`);
+      toast(`${key}: ${val ? '✅ ativado' : '❌ desativado'}`);
     } else {
-      toast('Erro ao alterar config (adicione setBotConfig ao server.js)');
+      toast('Erro ao alterar (verifique server.js)');
     }
   });
 }
