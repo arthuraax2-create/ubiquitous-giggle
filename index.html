@@ -221,7 +221,53 @@ select.inp{cursor:pointer;}
 .rep-bar .fill{height:100%;border-radius:2px;transition:width 0.3s;}
 
 /* ═══ PLAYER CARDS ═══ */
-.player-card{background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;}
+.player-card{background:var(--bg-card2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;cursor:pointer;transition:border-color .2s,transform .15s;}
+.player-card:hover{border-color:var(--purple);transform:translateX(3px);}
+/* ═══ PLAYER ACTIVITY VIEW ═══ */
+.pa-header{margin-bottom:18px;}
+.pa-title{font-size:22px;font-weight:800;letter-spacing:0.04em;color:var(--text);}
+.pa-subtitle{font-size:11px;color:var(--text-muted);letter-spacing:0.12em;text-transform:uppercase;font-family:'JetBrains Mono',monospace;margin-top:3px;}
+.pa-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:22px;}
+.pa-stat{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;position:relative;overflow:hidden;}
+.pa-stat::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--purple),var(--cyan));}
+.pa-stat .pav{font-size:24px;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--purple);line-height:1;margin-bottom:4px;}
+.pa-stat .pal{font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.14em;}
+.pa-section-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px;letter-spacing:0.05em;}
+.pa-sort{display:flex;gap:6px;align-items:center;margin-bottom:12px;flex-wrap:wrap;}
+.pa-sort label{font-size:10px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;}
+.pa-sort select{background:var(--bg-card);border:1px solid var(--border);border-radius:6px;color:var(--text-dim);font-size:11px;padding:5px 8px;font-family:'JetBrains Mono',monospace;outline:none;cursor:pointer;}
+.pa-sort select:focus{border-color:var(--purple);}
+/* Server session card */
+.ss-card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px;transition:border-color .2s;}
+.ss-card:hover{border-color:var(--purple);}
+.ss-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.ss-dot.online{background:var(--green);box-shadow:0 0 8px var(--green);}
+.ss-dot.offline{background:var(--text-muted);}
+.ss-info{flex:1;min-width:0;}
+.ss-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ss-ip{font-size:10px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;}
+.ss-meta{font-size:10px;color:var(--text-dim);margin-top:3px;}
+.ss-stats{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0;}
+.ss-sessions{font-size:18px;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--purple);}
+.ss-sessions-lbl{font-size:8px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;}
+.ss-avg{font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--cyan);margin-top:4px;}
+.ss-avg-lbl{font-size:8px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;}
+.copy-ip-btn{background:transparent;border:1px solid var(--border);border-radius:5px;color:var(--text-muted);font-size:9px;padding:4px 7px;cursor:pointer;font-family:'JetBrains Mono',monospace;letter-spacing:0.05em;transition:all .15s;flex-shrink:0;}
+.copy-ip-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+.copy-ip-btn.copied{border-color:var(--green);color:var(--green);}
+.pa-back-btn{background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text-dim);font-size:11px;padding:6px 12px;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:all .15s;margin-bottom:16px;display:inline-flex;align-items:center;gap:6px;}
+.pa-back-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+/* Srv card online/offline dot */
+.srv-status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;flex-shrink:0;}
+.srv-status-dot.online{background:var(--green);box-shadow:0 0 6px var(--green);}
+.srv-status-dot.offline{background:var(--text-muted);}
+/* Sort bar for servers page */
+.srv-sort-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.srv-copy-btn{background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--text-muted);font-size:9px;padding:3px 7px;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:all .15s;margin-left:4px;}
+.srv-copy-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+.srv-copy-btn.copied{border-color:var(--green);color:var(--green);}
+/* MOTD color codes */
+.mc0{color:#000}.mc1{color:#00a}.mc2{color:#0a0}.mc3{color:#0aa}.mc4{color:#a00}.mc5{color:#a0a}.mc6{color:#fa0}.mc7{color:#aaa}.mc8{color:#555}.mc9{color:#55f}.mca{color:#5f5}.mcb{color:#5ff}.mcc{color:#f55}.mcd{color:#f5f}.mce{color:#ff5}.mcf{color:#fff}
 .player-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
 .player-avatar{width:32px;height:32px;border-radius:6px;image-rendering:pixelated;}
 .player-name{font-weight:700;font-size:12px;font-family:'JetBrains Mono',monospace;}
@@ -569,10 +615,17 @@ select.inp{cursor:pointer;}
 
       <!-- SERVERS -->
       <div class="page" id="p-servers">
-        <div class="inp-row">
+        <div class="inp-row srv-sort-bar">
           <select class="inp" id="srvCatF" style="max-width:140px;" onchange="renderSrvs()"><option value="all">Todas</option><option value="survival">Survival</option><option value="pvp">PvP</option><option value="criativo">Criativo</option><option value="minigame">Minigame</option><option value="smp">SMP</option><option value="lojinha">Lojinha</option><option value="outro">Outro</option></select>
           <select class="inp" id="srvStatF" style="max-width:110px;" onchange="renderSrvs()"><option value="all">Todos</option><option value="online">Online</option><option value="offline">Offline</option></select>
           <input class="inp" id="srvSearch" placeholder="Pesquisar..." style="max-width:200px;" oninput="renderSrvs()">
+          <select class="inp" id="srvSort" style="max-width:150px;" onchange="renderSrvs()">
+            <option value="status">Ordenar: Status</option>
+            <option value="name">Ordenar: Nome</option>
+            <option value="ip">Ordenar: IP</option>
+            <option value="players">Ordenar: Jogadores</option>
+            <option value="version">Ordenar: Versão</option>
+          </select>
         </div>
         <div id="srvsPanel"></div>
       </div>
@@ -1027,42 +1080,194 @@ function sendChat(){ if(currentRole!=='admin')return; const m=document.getElemen
 function sendCmd(){ if(currentRole!=='admin')return; const c=document.getElementById('chatSendCmd').value.trim(),s=document.getElementById('chatSendSrv').value; if(!c)return; socket.emit('command',{serverKey:s,command:c}); document.getElementById('chatSendCmd').value=''; }
 
 // ══ SERVERS ══
+function colorizeMotd(raw){
+  if(!raw)return'';
+  let s=typeof raw==='object'?cleanMotd(raw):String(raw);
+  const map={0:'mc0',1:'mc1',2:'mc2',3:'mc3',4:'mc4',5:'mc5',6:'mc6',7:'mc7',8:'mc8',9:'mc9',a:'mca',b:'mcb',c:'mcc',d:'mcd',e:'mce',f:'mcf'};
+  return s.replace(/§([0-9a-fk-or])/gi,(m,c)=>{const cl=map[c.toLowerCase()];return cl?`</span><span class="${cl}">`:m;}).replace(/^<\/span>/,'')+'</span>';
+}
+function extractServerMeta(name){
+  if(!name)return{version:null,mode:null};
+  const vMatch=name.match(/\[?(?:Java\s*)?(\d+\.\d+(?:\.\d+)?)\]?/i);
+  const modes=['Survival','SMP','PvP','Criativo','Creative','Minigame','Prison','Factions','Skyblock','Lobby','Bedwars','Skywars'];
+  let mode=null;
+  for(const m of modes){if(name.toLowerCase().includes(m.toLowerCase())){mode=m;break;}}
+  return{version:vMatch?vMatch[1]:null,mode};
+}
+function copySrvIp(ip,btn){
+  navigator.clipboard.writeText(ip).then(()=>{
+    btn.textContent='Copiado!';btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent='Copiar IP';btn.classList.remove('copied');},1800);
+  }).catch(()=>{btn.textContent='Erro';setTimeout(()=>{btn.textContent='Copiar IP';},1500);});
+}
 function renderSrvs(){
   const p=document.getElementById('srvsPanel');
   const cf=document.getElementById('srvCatF')?.value||'all',sf=document.getElementById('srvStatF')?.value||'all',q=(document.getElementById('srvSearch')?.value||'').toLowerCase();
+  const sortBy=document.getElementById('srvSort')?.value||'status';
   let srvs=allServers;
   if(cf!=='all') srvs=srvs.filter(s=>(s.categoria||'desconhecido')===cf);
   if(sf!=='all') srvs=srvs.filter(s=>s.status===sf);
   if(q) srvs=srvs.filter(s=>s.key.toLowerCase().includes(q)||(cleanMotd(s.motd)||'').toLowerCase().includes(q));
-  srvs.sort((a,b)=>{ if(a.status==='online'&&b.status!=='online')return-1; if(b.status==='online'&&a.status!=='online')return 1; return(b.players?.length||0)-(a.players?.length||0); });
+  srvs=[...srvs];
+  if(sortBy==='status') srvs.sort((a,b)=>{ if(a.status==='online'&&b.status!=='online')return-1; if(b.status==='online'&&a.status!=='online')return 1; return(b.players?.length||0)-(a.players?.length||0); });
+  else if(sortBy==='name') srvs.sort((a,b)=>cleanMotd(a.motd||a.key).localeCompare(cleanMotd(b.motd||b.key)));
+  else if(sortBy==='ip') srvs.sort((a,b)=>a.key.localeCompare(b.key));
+  else if(sortBy==='players') srvs.sort((a,b)=>(b.players?.length||0)-(a.players?.length||0));
+  else if(sortBy==='version') srvs.sort((a,b)=>(a.version||'').localeCompare(b.version||''));
   if(!srvs.length){ p.innerHTML='<div style="padding:24px;text-align:center;color:var(--text-muted);">Nenhum servidor</div>'; return; }
   p.innerHTML=srvs.map(s=>{
     const motd=cleanMotd(s.motd),cat=s.categoria||'desconhecido',rep=s.reputation||50;
-    const sc=s.status==='online'?'var(--success)':s.status==='banned'?'var(--danger)':'var(--text-muted)';
+    const isOnline=s.status==='online';
     const rc=rep>70?'var(--success)':rep>40?'var(--warning)':'var(--danger)';
     const pc=s.players?.length||s.onlinePlayers||0;
     const isA=currentRole==='admin';
     const plugins=(s.plugins||[]).slice(0,8).join(', ');
     const sw=s.serverSoftware?` [${s.serverSoftware}]`:'';
     const skey=esc(s.key);
-    return`<div class="srv-card"><div class="srv-head"><div><span class="srv-name" style="color:${sc}">● ${skey}${esc(sw)}</span> <span class="srv-tag ${cat}">${cat}</span>${(s.tags||[]).map(t=>`<span class="srv-tag">${esc(t)}</span>`).join('')}</div><div style="display:flex;gap:3px;align-items:center;">${isA?`<button class="btn sm" data-srv-action="tag" data-key="${skey}">Tag</button><button class="btn sm" data-srv-action="cat" data-key="${skey}">Cat</button><button class="btn sm" data-srv-action="scan" data-key="${skey}">Scan</button><button class="btn sm ${(stats.silentServers||[]).includes(s.key)?'danger':''}" data-srv-action="silent" data-key="${skey}">${(stats.silentServers||[]).includes(s.key)?'Unsilent':'Silent'}</button>`:''}<span style="font-size:10px;color:var(--text-muted);">Pl:${pc}/${s.maxPlayers||'?'}</span></div></div>${motd?`<div class="srv-motd">"${esc(motd)}"</div>`:''}<div class="srv-meta"><span>v${s.version||'?'}</span><span>${s.status}</span>${s.ping?`<span>Ping:${s.ping}ms</span>`:''}<span>Rep:${rep}</span></div>${plugins?`<div class="srv-plugins">Plugins: ${esc(plugins)}</div>`:''}<div class="rep-bar"><div class="fill" style="width:${rep}%;background:${rc}"></div></div></div>`;
+    const {version,mode}=extractServerMeta((s.motd&&typeof s.motd==='string'?s.motd:motd)||'');
+    const vDisplay=s.version||version||'?';
+    const modeTag=mode?`<span class="srv-tag">${mode}</span>`:'';
+    const coloredMotd=s.motd?colorizeMotd(s.motd):'';
+    return`<div class="srv-card">
+      <div class="srv-head">
+        <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;">
+          <span class="srv-status-dot ${isOnline?'online':'offline'}"></span>
+          <span class="srv-name">${coloredMotd||skey}${esc(sw)}</span>
+          <span class="srv-tag ${cat}">${cat}</span>${modeTag}${(s.tags||[]).map(t=>`<span class="srv-tag">${esc(t)}</span>`).join('')}
+        </div>
+        <div style="display:flex;gap:4px;align-items:center;">
+          <button class="srv-copy-btn" data-copy="${skey}">Copiar IP</button>
+          ${isA?`<button class="btn sm" data-srv-action="tag" data-key="${skey}">Tag</button><button class="btn sm" data-srv-action="cat" data-key="${skey}">Cat</button><button class="btn sm" data-srv-action="scan" data-key="${skey}">Scan</button><button class="btn sm ${(stats.silentServers||[]).includes(s.key)?'danger':''}" data-srv-action="silent" data-key="${skey}">${(stats.silentServers||[]).includes(s.key)?'Unsilent':'Silent'}</button>`:''}
+          <span style="font-size:10px;color:var(--text-muted);">Pl:${pc}/${s.maxPlayers||'?'}</span>
+        </div>
+      </div>
+      <div style="font-size:10px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;margin:3px 0 6px;">${skey}</div>
+      ${motd?`<div class="srv-motd">"${esc(motd)}"</div>`:''}
+      <div class="srv-meta"><span>v${vDisplay}</span><span style="color:${isOnline?'var(--green)':'var(--text-muted);'};">${s.status}</span>${s.ping?`<span>Ping:${s.ping}ms</span>`:''}<span>Rep:${rep}</span></div>
+      ${plugins?`<div class="srv-plugins">Plugins: ${esc(plugins)}</div>`:''}
+      <div class="rep-bar"><div class="fill" style="width:${rep}%;background:${rc}"></div></div>
+    </div>`;
   }).join('');
+  p.querySelectorAll('.srv-copy-btn').forEach(btn=>{ btn.addEventListener('click',e=>{ e.stopPropagation(); copySrvIp(btn.dataset.copy,btn); }); });
   p.querySelectorAll('[data-srv-action]').forEach(btn=>{ btn.addEventListener('click',()=>{ const action=btn.dataset.srvAction,key=btn.dataset.key; if(action==='tag'){ const t=prompt('Tag:'); if(t) socket.emit('addServerTag',{serverKey:key,tag:t.trim()}); } if(action==='cat'){ const c=prompt('Categoria:'); if(c) socket.emit('setServerCategory',{serverKey:key,categoria:c.trim()}); } if(action==='scan'){ socket.emit('scanVulnerabilities',key); toast(`Scan: ${key}`); } if(action==='silent') toggleSilent(key); }); });
 }
 function toggleSilent(k){ socket.emit('setSilentServer',{serverKey:k,silent:!(stats.silentServers||[]).includes(k)}); }
 
 // ══ PLAYERS ══
 function searchPlayers(){ if(!socket?.connected) return; const q=document.getElementById('playerSearch').value.trim(); const toxic=document.getElementById('playerToxicOnly').checked; socket.emit('getPlayersDB',{search:q,toxic:toxic||undefined}); }
+
+let _playersCache=[];
 function renderPlayersResult(players){
+  _playersCache=players||[];
   const p=document.getElementById('playersPanel');
   if(!players||!players.length){ p.innerHTML='<div style="padding:24px;text-align:center;color:var(--text-muted);">Nenhum player encontrado</div>'; return; }
-  p.innerHTML=players.map(pl=>{
+  p.innerHTML=players.map((pl,i)=>{
     const roles=(pl.roles||[]).map(r=>`<span class="player-role">${r}</span>`).join(' ');
     const lastDate=pl.lastSeen?new Date(pl.lastSeen).toLocaleString('pt-BR'):'?';
     const sentTotal=(pl.sentiment?.positive||0)+(pl.sentiment?.negative||0)+(pl.sentiment?.neutral||0);
     const sentPct=sentTotal>0?Math.round((pl.sentiment.positive/sentTotal)*100):50;
-    return`<div class="player-card"><div class="player-head"><img class="player-avatar" src="https://mc-heads.net/avatar/${esc(pl.username)}/32" onerror="this.src='https://mc-heads.net/avatar/Steve/32'"><div><div class="player-name">${esc(pl.username)} ${roles} ${pl.toxic?'<span class="player-toxic">TOXICO</span>':''}</div><div style="font-size:10px;color:var(--text-muted);">Visto: ${lastDate}</div></div></div><div class="player-stats"><span>Msgs: ${pl.messageCount||0}</span><span>Srvs: ${(pl.servers||[]).length}</span><span>Peak: ${pl.peakHour||'?'}h</span><span>Pos: ${sentPct}%</span></div>${pl.messages&&pl.messages.length>0?`<div style="margin-top:6px;font-size:11px;color:var(--text-dim);">${pl.messages.slice(-3).map(m=>`<div><span style="color:var(--text-muted);">[${esc(m.server||'')}]</span> ${esc(m.text||'')}</div>`).join('')}</div>`:''}</div>`;
+    return`<div class="player-card" onclick="showPlayerActivity(${i})"><div class="player-head"><img class="player-avatar" src="https://mc-heads.net/avatar/${esc(pl.username)}/32" onerror="this.src='https://mc-heads.net/avatar/Steve/32'"><div><div class="player-name">${esc(pl.username)} ${roles} ${pl.toxic?'<span class="player-toxic">TOXICO</span>':''}</div><div style="font-size:10px;color:var(--text-muted);">Visto: ${lastDate}</div></div></div><div class="player-stats"><span>Msgs: ${pl.messageCount||0}</span><span>Srvs: ${(pl.servers||[]).length}</span><span>Peak: ${pl.peakHour||'?'}h</span><span>Pos: ${sentPct}%</span></div></div>`;
   }).join('');
+}
+
+function calcPlayerSessions(pl){
+  // Group messages by server and estimate sessions (gap > 20min = new session)
+  const GAP=20*60*1000;
+  const byServer={};
+  (pl.servers||[]).forEach(k=>{byServer[k]={msgs:[],sessions:0,totalMs:0};});
+  (pl.messages||[]).forEach(m=>{
+    const k=m.server||m.serverKey||'';
+    if(!byServer[k])byServer[k]={msgs:[],sessions:0,totalMs:0};
+    byServer[k].msgs.push(m.timestamp||0);
+  });
+  Object.values(byServer).forEach(srv=>{
+    const ts=srv.msgs.filter(Boolean).sort((a,b)=>a-b);
+    if(!ts.length){srv.sessions=0;srv.totalMs=0;return;}
+    let sessions=1,start=ts[0],last=ts[0];
+    for(let i=1;i<ts.length;i++){
+      if(ts[i]-ts[i-1]>GAP){sessions++;start=ts[i];}
+      last=ts[i];
+    }
+    srv.sessions=sessions;
+    srv.totalMs=ts.length>1?ts[ts.length-1]-ts[0]:0;
+  });
+  return byServer;
+}
+
+function showPlayerActivity(idx){
+  const pl=_playersCache[idx];
+  if(!pl)return;
+  const p=document.getElementById('playersPanel');
+  const sessData=calcPlayerSessions(pl);
+  const srvKeys=Object.keys(sessData).filter(k=>k);
+  const totalSessions=Object.values(sessData).reduce((s,d)=>s+(d.sessions||0),0)||srvKeys.length;
+  const totalMs=Object.values(sessData).reduce((s,d)=>s+(d.totalMs||0),0);
+  const totalH=totalMs>0?(totalMs/3600000).toFixed(1)+'h':'—';
+  const avgMin=totalSessions>0&&totalMs>0?Math.round(totalMs/totalSessions/60000)+'min':'—';
+  let _sortBy='sessions';
+  function getSortedSrvs(){
+    return srvKeys.map(k=>{
+      const srv=allServers.find(s=>s.key===k)||{key:k,status:'offline'};
+      const d=sessData[k]||{sessions:0,totalMs:0};
+      const avgM=d.sessions>0&&d.totalMs>0?Math.round(d.totalMs/d.sessions/60000):0;
+      return{k,srv,d,avgM};
+    }).sort((a,b)=>{
+      if(_sortBy==='name') return a.k.localeCompare(b.k);
+      if(_sortBy==='ip') return a.k.localeCompare(b.k);
+      if(_sortBy==='avg') return b.avgM-a.avgM;
+      return b.d.sessions-a.d.sessions; // default: sessions
+    });
+  }
+  function renderCards(){
+    return getSortedSrvs().map(({k,srv,d,avgM})=>{
+      const isOnline=srv.status==='online';
+      const coloredName=srv.motd?colorizeMotd(srv.motd):`<span>${esc(k)}</span>`;
+      const {version,mode}=extractServerMeta(cleanMotd(srv.motd)||k);
+      const vDisplay=srv.version||version;
+      const modeStr=mode||srv.categoria||'';
+      return`<div class="ss-card">
+        <span class="ss-dot ${isOnline?'online':'offline'}"></span>
+        <div class="ss-info">
+          <div class="ss-name">${coloredName}</div>
+          <div class="ss-ip">${esc(k)}</div>
+          ${vDisplay||modeStr?`<div class="ss-meta">${vDisplay?`v${vDisplay}`:''}${vDisplay&&modeStr?' · ':''}${modeStr?modeStr:''}</div>`:''}
+        </div>
+        <button class="copy-ip-btn" onclick="copySrvIp('${esc(k)}',this)">Copiar IP</button>
+        <div class="ss-stats">
+          <div><div class="ss-sessions">${d.sessions||1}</div><div class="ss-sessions-lbl">Sessões</div></div>
+          <div><div class="ss-avg">${avgM?avgM+'min':'0min'}</div><div class="ss-avg-lbl">Média</div></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  p.innerHTML=`
+    <button class="pa-back-btn" onclick="renderPlayersResult(_playersCache)">← Voltar</button>
+    <div class="pa-header">
+      <div class="pa-title">${esc(pl.username)}</div>
+      <div class="pa-subtitle">Análise de Atividade do Jogador</div>
+    </div>
+    <div class="pa-stats">
+      <div class="pa-stat"><div class="pav">${totalSessions}</div><div class="pal">Total de Sessões</div></div>
+      <div class="pa-stat"><div class="pav">${totalH}</div><div class="pal">Tempo Total</div></div>
+      <div class="pa-stat"><div class="pav">${avgMin}</div><div class="pal">Sessão Média</div></div>
+      <div class="pa-stat"><div class="pav">${srvKeys.length}</div><div class="pal">Servidores</div></div>
+    </div>
+    <div class="pa-section-title">Servidores Jogados</div>
+    <div class="pa-sort">
+      <label>Ordenar por:</label>
+      <select id="paSortSel">
+        <option value="sessions">Sessões</option>
+        <option value="avg">Tempo Médio</option>
+        <option value="name">Nome</option>
+        <option value="ip">IP</option>
+      </select>
+    </div>
+    <div id="paServerList">${renderCards()}</div>
+  `;
+  document.getElementById('paSortSel').addEventListener('change',e=>{
+    _sortBy=e.target.value;
+    document.getElementById('paServerList').innerHTML=renderCards();
+  });
 }
 
 // ══ MC TEXTURES ══
