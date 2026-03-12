@@ -1,4 +1,4 @@
-// server.js - v9.0 (MEGA UPDATE)
+// server.js - v1.4 QOL
 const express = require('express');
 const http = require('http');
 const crypto = require('crypto');
@@ -73,7 +73,7 @@ const PORT = parseInt(process.env.PORT) || 3000;
 const SECRET_KEY = process.env.SECRET_KEY;
 
 if (!SECRET_KEY) {
-    console.error('❌ FATAL: SECRET_KEY não definida no .env!');
+    console.error('FATAL: SECRET_KEY não definida no .env!');
     console.error('Crie um arquivo .env com: SECRET_KEY=sua_chave_secreta');
     process.exit(1);
 }
@@ -106,7 +106,7 @@ function safeWriteFile(filepath, data) {
         fs.writeFileSync(tmpPath, content);
         fs.renameSync(tmpPath, filepath);
     } catch (err) {
-        console.error(`⚠️ Erro salvando ${filepath}: ${err.message}`);
+        console.error(`Erro salvando ${filepath}: ${err.message}`);
     } finally {
         saveLocks.set(filepath, false);
     }
@@ -163,7 +163,7 @@ function updateAdTimers() {
                 ad.remainingMs = 0;
                 ad.status = 'expired';
                 console.log(`⏰ Anúncio expirou: "${ad.message.substring(0, 40)}..."`);
-                sendLogToDiscord('⏰', `Anúncio expirou: "${ad.message.substring(0, 40)}"`);
+                sendLogToDiscord('', `Anúncio expirou: "${ad.message.substring(0, 40)}"`);
             }
         }
     });
@@ -485,16 +485,36 @@ function getChatHash(msg) {
     return `${user}|${srv}|${txt}`;
 }
 
+// Set de IDs únicos recebidos (do novo bot.js com campo id)
+const seenMessageIds = new Set();
+const MAX_SEEN_IDS = 10000;
+
 function isDuplicate(msg) {
-    const hash = getChatHash(msg);
     const now = Date.now();
+
+    // Se a mensagem tem ID único (bot.js >= v9.1), usar ID direto — mais confiável
+    if (msg.id) {
+        if (seenMessageIds.has(msg.id)) return true;
+        seenMessageIds.add(msg.id);
+        if (seenMessageIds.size > MAX_SEEN_IDS) {
+            const iter = seenMessageIds.values();
+            seenMessageIds.delete(iter.next().value);
+        }
+        // Ainda registrar hash para evitar duplicatas de bots antigos sem ID
+        const hash = getChatHash(msg);
+        recentMessageTimes.set(hash, now);
+        recentMessageHashes.add(hash);
+        return false;
+    }
+
+    // Fallback: hash de conteúdo (bots sem campo id)
+    const hash = getChatHash(msg);
     const lastSeen = recentMessageTimes.get(hash);
     if (lastSeen && (now - lastSeen) < DEDUP_WINDOW_MS) return true;
 
     recentMessageTimes.set(hash, now);
     recentMessageHashes.add(hash);
 
-    // Limpar cache antigo
     if (recentMessageHashes.size > MAX_HASH_CACHE) {
         const expired = now - DEDUP_WINDOW_MS * 10;
         for (const [h, t] of recentMessageTimes) {
@@ -856,6 +876,7 @@ io.on('connection', (socket) => {
         'jump', 'refresh', 'addBlacklist', 'restartBots', 'clearChatDatabase', 'saveChat',
         'addServerTag', 'setServerCategory', 'scanVulnerabilities', 'tabCompleteServer',
         'removeLearnItem', 'setSilentServer', 'startMining', 'stopMining',
+        'swarmCircle', 'swarmStop', 'markovSocial',
     ];
 
     adminCmds.forEach(cmd => {
@@ -1181,22 +1202,22 @@ process.on('unhandledRejection', (reason) => {
 server_http.listen(PORT, '0.0.0.0', () => {
     console.log('');
     console.log('╔══════════════════════════════════════════╗');
-    console.log('║          RELAY SERVER v9.0               ║');
+    console.log('║          RELAY SERVER 1.4              ║');
     console.log('║     Monetização + Segurança + Full       ║');
     console.log('╠══════════════════════════════════════════╣');
-    console.log(`║ 🌐 Porta: ${PORT}`);
-    console.log(`║ 🔒 Usuários: ${usersDB.length}`);
-    console.log(`║ 🔑 API Keys: ${apiKeys.length}`);
-    console.log(`║ 📢 Anúncios ativos: ${getActiveAds().length}`);
-    console.log(`║ 👥 Players DB: ${Object.keys(playersDB).length}`);
-    console.log(`║ 💾 Chat persistido: ${persistedChat.length} msgs`);
-    console.log(`║ 🔐 SECRET_KEY: ${SECRET_KEY ? '✅ .env' : '❌ FALTANDO'}`);
-    console.log(`║ 🔐 Criptografia: AES-256-CBC ✅`);
-    console.log(`║ ⏰ Sessão: ${SESSION_DURATION / 60000}min`);
+    console.log(`║ Porta: ${PORT}`);
+    console.log(`║ Usuários: ${usersDB.length}`);
+    console.log(`║ API Keys: ${apiKeys.length}`);
+    console.log(`║ Anúncios ativos: ${getActiveAds().length}`);
+    console.log(`║ Players DB: ${Object.keys(playersDB).length}`);
+    console.log(`║ Chat persistido: ${persistedChat.length} msgs`);
+    console.log(`║ SECRET_KEY: ${SECRET_KEY ? '✅ .env' : '❌ FALTANDO'}`);
+    console.log(`║ Criptografia: AES-256-CBC ✅`);
+    console.log(`║ Sessão: ${SESSION_DURATION / 60000}min`);
     console.log('╚══════════════════════════════════════════╝');
     console.log('');
-    console.log('✅ Servidor pronto!');
-    sendLogToDiscord('🚀', `Relay v9.0 iniciado! Porta ${PORT}`);
+    console.log('Servidor pronto!');
+    sendLogToDiscord('', `Relay V 1.5 BETA iniciado! Porta ${PORT}`);
 
     // ========== KEEP ALIVE (Render free tier) ==========
     setInterval(() => {
